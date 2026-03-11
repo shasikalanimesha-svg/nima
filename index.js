@@ -6,6 +6,82 @@
     const fs = require('fs');
     const path = require('path');
 
+    // ═══════════════════════════════════════════════════════
+    // 📦 Auto Dependency Installer
+    // ═══════════════════════════════════════════════════════
+    function _detectPackageManager() {
+        try { execSync('yarn --version', { stdio: 'pipe', timeout: 5000 }); return 'yarn'; } catch {}
+        try { execSync('npm --version',  { stdio: 'pipe', timeout: 5000 }); return 'npm';  } catch {}
+        try { execSync('pnpm --version', { stdio: 'pipe', timeout: 5000 }); return 'pnpm'; } catch {}
+        return 'npm';
+    }
+
+    function _needsInstall() {
+        const pkgPath = path.join(__dirname, 'package.json');
+        if (!fs.existsSync(pkgPath)) return false;
+        const nmPath = path.join(__dirname, 'node_modules');
+        if (!fs.existsSync(nmPath)) return true;
+
+        // package.json වල dependencies check කරනවා
+        try {
+            const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+            const deps = Object.keys({ ...pkg.dependencies, ...pkg.devDependencies });
+            for (const dep of deps) {
+                const depPath = path.join(nmPath, dep);
+                if (!fs.existsSync(depPath)) {
+                    console.log(`📦 Missing module detected: ${dep}`);
+                    return true;
+                }
+            }
+        } catch {}
+        return false;
+    }
+
+    function _runInstall(pm) {
+        const commands = {
+            npm:  [
+                'npm install --legacy-peer-deps --no-audit --prefer-offline',
+                'npm install --force --no-audit',
+                'npm install --legacy-peer-deps',
+            ],
+            yarn: [
+                'yarn install --ignore-engines --network-timeout 100000',
+                'yarn install --ignore-engines',
+                'yarn install',
+            ],
+            pnpm: [
+                'pnpm install --shamefully-hoist',
+                'pnpm install',
+            ],
+        };
+
+        const cmds = commands[pm] || commands['npm'];
+        for (const cmd of cmds) {
+            try {
+                console.log(`📦 Running: ${cmd}`);
+                execSync(cmd, { stdio: 'inherit', cwd: __dirname, timeout: 180000, shell: true });
+                console.log('✅ Dependencies install සාර්ථකයි!');
+                return true;
+            } catch (e) {
+                console.log(`✗ ${cmd} — ${e.message?.substring(0, 80)}`);
+            }
+        }
+        return false;
+    }
+
+    if (_needsInstall()) {
+        console.log('\n📦 [Auto-Install] Dependencies install කරමින්...');
+        const pm = _detectPackageManager();
+        console.log(`📦 Package manager: ${pm}`);
+        const ok = _runInstall(pm);
+        if (!ok) {
+            console.log('⚠️ Auto-install අසාර්ථකයි. Manual install කරන්න:');
+            console.log('   npm install --legacy-peer-deps');
+        }
+        console.log('');
+    }
+    // ═══════════════════════════════════════════════════════
+
     const REPO_URL = 'https://github.com/nimesha206/nimabw.git';
 
     function _isGitRepo() {
@@ -60,9 +136,9 @@
                 }
 
                 if (pulled) {
-                    try {
-                        execSync('npm install --prefer-offline --no-audit --legacy-peer-deps', { stdio: 'inherit', cwd: __dirname, timeout: 120000 });
-                    } catch {}
+                    console.log('📦 Updating dependencies after git pull...');
+                    const _pm2 = _detectPackageManager();
+                    _runInstall(_pm2);
 
                     console.log('🔄 Bot auto-restart කරමින් (නව version)...');
                     const { spawn } = require('child_process');
@@ -450,7 +526,6 @@ async function startnimaBot() {
 	});
 	
 	nimaBot.ev.on('messages.upsert', async (message) => {
-		await shasikala(nimaBot, message, null, global.store);
 		await MessagesUpsert(nimaBot, message, global.store);
 	});
 	

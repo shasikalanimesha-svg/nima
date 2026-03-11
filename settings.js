@@ -14,7 +14,7 @@ global.listv = ['•','●','■','✿','▲','➩','➢','➣','➤','✦','✧
 global.tempatDB = 'database.json'
 global.tempatStore = 'baileys_store.json'
 global.pairing_code = true
-global.number_bot = '94781973314'
+global.number_bot = ''
 
 global.fake = {
 	anonim: 'https://ibb.co/rKyYj3Rr',
@@ -45,7 +45,7 @@ global.money = {
 
 global.mess = {
 	key: 'ඔබගේ API යතුර කල් ඉකුත් වී ඇත. කරුණාකර https://nima.biz.id වෙත පිවිසෙන්න',
-	owner: SecureConfig.ownerName,
+	owner: 'අයිති කරුට පමණක් වලංගු වේ',
 	admin: SecureConfig.ownerName,
 	botAdmin: SecureConfig.ownerName,
 	group: 'කණ්ඩායම් වල පමණක් භාවිතා කරන්න!',
@@ -68,6 +68,7 @@ global.badWords = ['dongo']
 global.chatLength = 500
 global.geminiMemorySize = 50
 global.geminiApiKey = SecureConfig.geminiApiKey;
+global.footer = SecureConfig.footer;
 
 let file = require.resolve(__filename)
 fs.watchFile(file, () => {

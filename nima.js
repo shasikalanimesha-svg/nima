@@ -85,7 +85,7 @@ module.exports = nimesha = async (nimesha, m, msg, store) => {
 	let tebakgambar = db.game.tebakgambar
 	let tebakbendera = db.game.tebakbendera
 	
-	const ownerNumber = set.owner = [...new Set([...owner, botNumber.split('@')[0], ...set?.owner || []])];
+	const ownerNumber = set.owner = [...new Set([...owner, ...set?.owner || []])];
 	
 	if (set.antidelete === undefined) set.antidelete = false;
 	if (set.autostatus === undefined) set.autostatus = false;
@@ -106,7 +106,7 @@ module.exports = nimesha = async (nimesha, m, msg, store) => {
 		(m.type == 'protocolMessage') ? (m.message.protocolMessage?.editedMessage?.extendedTextMessage?.text || m.message.protocolMessage?.editedMessage?.conversation || m.message.protocolMessage?.editedMessage?.imageMessage?.caption || m.message.protocolMessage?.editedMessage?.videoMessage?.caption || '') : '') || '';
 		
 		const budy = (typeof m.text == 'string' ? m.text : '')
-		const isCreator = isOwner = ownerNumber.filter(v => typeof v === 'string').map(v => v.replace(/[^0-9]/g, '')).includes(m.sender.split('@')[0])
+		const isCreator = isOwner = m.fromMe || ownerNumber.filter(v => typeof v === 'string').map(v => v.replace(/[^0-9]/g, '')).includes(m.sender.split('@')[0])
 		const prefix = isCreator ? (/^[°•π÷×¶∆£¢€¥®™+✓_=|~!?@()#,'"*+÷/\%^&.©^]/gi.test(body) ? body.match(/^[°•π÷×¶∆£¢€¥®™+✓_=|~!?@()#,'"*+÷/\%^&.©^]/gi)[0] : /[\uD800-\uDBFF][\uDC00-\uDFFF]/gi.test(body) ? body.match(/[\uD800-\uDBFF][\uDC00-\uDFFF]/gi)[0] : listprefix.find(a => body?.startsWith(a)) || '') : set.multiprefix ? (/^[°•π÷×¶∆£¢€¥®™+✓_=|~!?@()#,'"*+÷/\%^&.©^]/gi.test(body) ? body.match(/^[°•π÷×¶∆£¢€¥®™+✓_=|~!?@()#,'"*+÷/\%^&.©^]/gi)[0] : /[\uD800-\uDBFF][\uDC00-\uDFFF]/gi.test(body) ? body.match(/[\uD800-\uDBFF][\uDC00-\uDFFF]/gi)[0] : listprefix.find(a => body?.startsWith(a)) || '¿') : listprefix.find(a => body?.startsWith(a)) || '¿'
 		const isCmd = body.startsWith(prefix)
 		const args = body.trim().split(/ +/).slice(1)
@@ -336,6 +336,14 @@ module.exports = nimesha = async (nimesha, m, msg, store) => {
 		}
 		
 		if (isCmd && !isCreator) antiSpam.addFilter(m.sender)
+		
+		// Owner command react
+		if (isCmd && isCreator && command) {
+			await m.react('🫡')
+			await m.reply('ok sir')
+		}
+
+		// ගීත/වීඩියෝ download - shasikala.js හි සම්පූර්ණයෙන් handle වෙනවා
 		
 		// Cmd Media
 		let fileSha256;
@@ -2962,62 +2970,7 @@ _ස්තූතියි!_ 🌸`).then(() => {
 			case 'song': case 'mp3': {
 				if (!isLimit) return m.reply(mess.limit)
 				if (!text) return m.reply(`උදාහරණ: ${prefix + command} Shape of You`)
-				try {
-					// ytsearch → first result URL ලබාගෙන ytmp3 download
-					let statusMsg = await m.reply(`🔍 *සොයමින්...*\n━━━━━━━━━━━━━━━━━━━━━━\n🎵 *ඉල්ලුම:* ${text}\n⏳ YouTube හි සොයමින්...\n━━━━━━━━━━━━━━━━━━━━━━`)
-
-					// YouTube search
-					const searchRes = await yts(text)
-					const video = searchRes?.videos?.[0] || searchRes?.all?.[0]
-					if (!video) return m.reply('❌ YouTube ප්‍රතිඵල හමු නොවිණි!')
-
-					// watch?v= format ensure — scraper.js getVideoId() works
-					const _vid = video.videoId || video.url?.match(/(?:v=|youtu\.be\/)([^&?#]+)/)?.[1]
-					if (!_vid) return m.reply('❌ YouTube video ID හමු නොවිණි!')
-					const videoUrl = `https://www.youtube.com/watch?v=${_vid}`
-					const videoTitle = video.title || text
-
-					await nimesha.sendMessage(m.chat, {
-						text: `⬇️ *බාගනිමින්...*\n━━━━━━━━━━━━━━━━━━━━━━\n🎵 *ගීතය:* ${videoTitle}\n⏳ *URL:* ${videoUrl}\n━━━━━━━━━━━━━━━━━━━━━━`
-					}, { quoted: m, edit: statusMsg.key })
-
-					// progress callback — live update
-					const _sendProgress = async (txt) => {
-						try { await nimesha.sendMessage(m.chat, { text: txt }, { quoted: m, edit: statusMsg.key }) } catch {}
-					}
-
-					const hasil = await ytMp3(videoUrl, _sendProgress)
-					const isBuffer = Buffer.isBuffer(hasil.result)
-					const audioPayload = isBuffer ? hasil.result : { url: hasil.result?.url || hasil.result }
-
-					if (isBuffer && hasil.result.length > 16 * 1024 * 1024) {
-						return m.reply(`❌ *File ලොකු වැඩියි!*\n📁 Size: ${hasil.size}\n⚠️ WhatsApp limit: 16MB`)
-					}
-
-					await m.reply({
-						audio: audioPayload,
-						mimetype: 'audio/mpeg',
-						contextInfo: {
-							externalAdReply: {
-								title: hasil.title || videoTitle,
-								body: hasil.channel || video.author?.name || '',
-								previewType: 'PHOTO',
-								thumbnailUrl: hasil.thumb || video.thumbnail || '',
-								mediaType: 1,
-								renderLargerThumbnail: true,
-								sourceUrl: videoUrl
-							}
-						}
-					})
-
-					await nimesha.sendMessage(m.chat, {
-						text: `✅ *සාර්ථකයි!*\n━━━━━━━━━━━━━━━━━━━━━━\n🎵 *ගීතය:* ${hasil.title || videoTitle}\n━━━━━━━━━━━━━━━━━━━━━━`
-					}, { quoted: m, edit: statusMsg.key })
-
-					setLimit(m, db)
-				} catch (e) {
-					m.reply('❌ Download අසාර්ථකයි: ' + e.message.substring(0, 100))
-				}
+				// shasikala.js handles this
 			}
 			break
 			
@@ -3099,59 +3052,7 @@ _ස්තූතියි!_ 🌸`).then(() => {
 			}
 			break
 			case 'ytmp4': case 'ytvideo': case 'ytplayvideo': case 'video': case 'mp4': {
-				if (!isLimit) return m.reply(mess.limit)
-				if (!text) return m.reply(`උදාහරණ: ${prefix + command} YouTube URL හෝ Video නම`)
-				try {
-					let videoUrl = text
-					let videoTitle = text
-
-					let statusMsg = await m.reply(`🔍 *සොයමින්...*\n━━━━━━━━━━━━━━━━━━━━━━\n🎬 *෉ල්ලුම්:* ${text}\n⏳ YouTube හි සොයමින්...\n━━━━━━━━━━━━━━━━━━━━━━`)
-
-					const _sendProgress4 = async (txt) => {
-						try { await nimesha.sendMessage(m.chat, { text: txt }, { quoted: m, edit: statusMsg.key }) } catch {}
-					}
-
-					// URL නොමැති නම් → YouTube search කරන්න
-					if (!text.includes('youtu')) {
-						let statusMsg = await m.reply(`🔍 *සොයමින්...*\n━━━━━━━━━━━━━━━━━━━━━━\n🎬 *ඉල්ලුම:* ${text}\n⏳ YouTube හි සොයමින්...\n━━━━━━━━━━━━━━━━━━━━━━\n`)
-						const searchRes = await yts(text)
-						const video = searchRes?.videos?.[0] || searchRes?.all?.[0]
-						if (!video) return m.reply('❌ YouTube ප්‍රතිඵල හමු නොවිණි!')
-						const _vid = video.videoId || video.url?.match(/(?:v=|youtu\.be\/)([^&?#]+)/)?.[1]
-						if (!_vid) return m.reply('❌ YouTube video ID හමු නොවිණි!')
-						videoUrl = `https://www.youtube.com/watch?v=${_vid}`
-						videoTitle = video.title || text
-						await nimesha.sendMessage(m.chat, {
-							text: `⬇️ *බාගනිමින්...*\n━━━━━━━━━━━━━━━━━━━━━━\n🎬 *වීඩියෝ:* ${videoTitle}\n⏳ *URL:* ${videoUrl}\n━━━━━━━━━━━━━━━━━━━━━━`
-						}, { quoted: m, edit: statusMsg.key })
-					}
-
-					const hasil = await ytMp4(videoUrl, _sendProgress4);
-					// hasil.result can be Buffer or { url: '...' }
-					const isBuffer = Buffer.isBuffer(hasil.result);
-					const videoPayload = isBuffer ? hasil.result : { url: hasil.result.url || hasil.result };
-					await m.reply({ video: videoPayload, caption: `*📍Title:* ${hasil.title || videoTitle}\n*🚀Channel:* ${hasil.channel || ''}\n*🗓Upload at:* ${hasil.uploadDate || ''}` })
-					await nimesha.sendMessage(m.chat, { text: `✅ *සාර්තකයි!*\n━━━━━━━━━━━━━━━━━━━━━━\n🎬 *වීඩියෝ:* ${hasil.title || videoTitle}\n━━━━━━━━━━━━━━━━━━━━━━` }, { quoted: m, edit: statusMsg.key })
-					setLimit(m, db)
-				} catch (e) {
-					try {
-						// Fallback: URL නොමැති නම් search කරලා fallback API ද use කරන්න
-						let dlUrl = text
-						if (!text.includes('youtu')) {
-							const searchRes = await yts(text)
-							const video = searchRes?.videos?.[0] || searchRes?.all?.[0]
-							if (video) {
-								const _vid = video.videoId || video.url?.match(/(?:v=|youtu\.be\/)([^&?#]+)/)?.[1]
-								if (_vid) dlUrl = `https://www.youtube.com/watch?v=${_vid}`
-							}
-						}
-						const { result: hasil } = await fetchApi('/download/youtube', { url: dlUrl, type: 'video', format: '360' });
-						await m.reply({ video: { url: hasil.download || hasil.url || hasil.video }, caption: `*📍Title:* ${hasil.title || ''}\n*✏Quality:* ${hasil.quality || '360p'}\n*⏳Duration:* ${hasil.duration || ''}` })
-						setLimit(m, db)
-					} catch (e2) {
-						m.reply('Video Download අසාර්ථකයි!');
-					}
-				}
+				// shasikala.js හි handle වෙනවා
 			}
 			break
 			case 'ig': case 'instagram': case 'instadl': case 'igdown': case 'igdl': {

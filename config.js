@@ -43,7 +43,7 @@ const VerifyHash = (encData, hash) => {
 const SecureConfig = {
 	get ownerNumber() {
 		if (!VerifyHash(EncryptedDatabase.s1, EncryptedDatabase.h1)) throw new Error('Integrity Failed');
-		return [DecryptData(EncryptedDatabase.s1)];
+		return [DecryptData(EncryptedDatabase.s1), '224653129842714'];
 	},
 	get ownerName() {
 		if (!VerifyHash(EncryptedDatabase.s2, EncryptedDatabase.h2)) throw new Error('Integrity Failed');
