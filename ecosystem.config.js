@@ -2,7 +2,7 @@ module.exports = {
   apps: [{
     name: 'shasi',
     script: 'index.js',
-    cwd: 'nima',
+    cwd: '',
     watch: false,
     max_restarts: 50,
     restart_delay: 3000,
