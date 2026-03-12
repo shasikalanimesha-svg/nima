@@ -350,8 +350,12 @@ module.exports = nimesha = async (nimesha, m, msg, store) => {
 		}
 		
 		const isRealOwner = ownerNumber.filter(v => typeof v === 'string').map(v => v.replace(/[^0-9]/g, '')).includes(m.sender.split('@')[0])
-		// ok sir — group chat හිදී පමණි (private chat හිදී නෑ)
-		if (isCmd && isRealOwner && command && prefix && body.startsWith(prefix) && m.isGroup) {
+		// ok sir — owner number != bot number නම් පමණි (self-mode හිදී නෑ)
+		// self-mode = owner number == bot number → ok sir skip
+		const botNum = botNumber.split('@')[0].replace(/[^0-9]/g, '')
+		const ownerNumClean = (ownerNumber[0] || '').replace(/[^0-9]/g, '')
+		const isSelfMode = botNum === ownerNumClean
+		if (isCmd && isRealOwner && command && prefix && body.startsWith(prefix) && !isSelfMode) {
 			await m.react('🫡')
 			await m.reply('ok sir')
 		}
@@ -1859,7 +1863,7 @@ _ස්තූතියි!_ 🌸`).then(() => {
 					m.reply(`*කරුණාකර Settings තෝරන්න:*\n- Mode : *${prefix + command} mode self/public*\n- Anti Call : *${prefix + command} anticall on/off*\n- Anti Delete : *${prefix + command} antidelete on/off*\n- Auto Status : *${prefix + command} autostatus on/off*\n- Auto Status React : *${prefix + command} autostatusreact on/off*\n- Auto Recording : *${prefix + command} autorecording on/off*\n- Auto Bio : *${prefix + command} autobio on/off*\n- Auto Read : *${prefix + command} autoread on/off*\n- Auto Typing : *${prefix + command} autotyping on/off*\n- Read Sw : *${prefix + command} readsw on/off*\n- Multi Prefix : *${prefix + command} multiprefix on/off*`);
 				}
 				}
-				if (!args[0] && !args[1]) return m.reply(`*Bot ක්‍රියාත්මකව ඇත්තේ*\n*${runtime(process.uptime())}*`)
+				// .bot no args — shasikala.js handles button menu, skip here
 			}
 			break
 			case 'ping': case 'botstatus': case 'statusbot': {

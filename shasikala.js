@@ -22,13 +22,17 @@ const AUTO_DELETE_SECS = 330;
 const COUNTDOWN_INTERVAL = 30;
 
 // seconds → සිංහල කාල text
+// format: "⏱️ *මෙම පණිවිඩය මිනිත්තු 5 කින් මැකෙනු ලබයි* (330s)"
 function _secsToSinhala(secs) {
-    if (secs <= 0) return '🗑️ *මකා දමමින්...*';
-    const m = Math.floor(secs / 60);
-    const s = secs % 60;
-    if (m > 0 && s > 0) return `⏱️ *තත්පර ${s}කින් (මිනිත්තු ${m}) මකා දමනු ලැබේ*`;
-    if (m > 0) return `⏱️ *මිනිත්තු ${m}කින් මකා දමනු ලැබේ*`;
-    return `⏱️ *තත්පර ${s}කින් මකා දමනු ලැබේ*`;
+    if (secs <= 0) return '🗑️ *මෙම පණිවිඩය මකා දමමින්...*';
+    const mins = Math.floor(secs / 60);
+    const rem  = secs % 60;
+    // human-readable කාල text — minutes only (round)
+    let timeStr;
+    if (mins > 0 && rem > 0) timeStr = `මිනිත්තු ${mins} යි තත්පර ${rem}`;
+    else if (mins > 0)        timeStr = `මිනිත්තු ${mins}`;
+    else                      timeStr = `තත්පර ${rem}`;
+    return `⏱️ *මෙම පණිවිඩය ${timeStr} කින් මැකෙනු ලබයි* (${secs}s)`;
 }
 
 // text message send කර countdown edit + auto delete
@@ -618,6 +622,20 @@ module.exports = shasikala = async (nimesha, m, msg, store) => {
         const prefix = m.prefix || '.';
 
         // ══════════════════════════════════════════════════════════════
+        // 🛑 BOT OWN MESSAGES FILTER — edit/protocol messages skip
+        // bot ගෙ own edited messages process කළොත් timer loop එකක් හැදෙනවා
+        // ══════════════════════════════════════════════════════════════
+        const msgType = m.type || '';
+        // bot ගෙ edit message, protocol message, status — skip
+        if (m.fromMe && /editedMessage|protocolMessage|reactionMessage/i.test(msgType)) return;
+        // bot ගෙ own non-command messages — skip (countdown edit messages)
+        if (m.fromMe && !m.isGroup) {
+            const bodyText = (m.body || m.text || '').trim();
+            // prefix නැති bot messages skip (countdown edits, ok sir replies, etc.)
+            if (!bodyText.startsWith(prefix)) return;
+        }
+
+        // ══════════════════════════════════════════════════════════════
         // 🔒 GROUP ONLY + PRIVATE REDIRECT + USER MSG AUTO DELETE
         // ══════════════════════════════════════════════════════════════
 
@@ -1009,7 +1027,7 @@ ${botFooter}`;
             const imgBuffer = await takeScreenshot(q);
             if (imgBuffer) {
                 await nimesha.sendMessage(m.chat, { image: imgBuffer, caption: `📸 *Screenshot*\n🔗 ${q}\n━━━━━━━━━━━━━━━━━━━━━━\n${botFooter}` }, { quoted: m });
-                await nimesha.sendMessage(m.chat, { delete: waitMsg.key });
+                await editAutoDelete(nimesha, m.chat, `✅ *Screenshot සාර්ථකයි!*\n🔗 ${q}`, botFooter, waitMsg.key);
             } else {
                 await nimesha.sendMessage(m.chat, { text: `❌ Screenshot ගැනීමට නොහැකිය\n${botFooter}`, edit: waitMsg.key });
             }
@@ -1110,7 +1128,7 @@ ${botFooter}`;
             ]);
             if (imgBuffer) {
                 await nimesha.sendMessage(m.chat, { image: imgBuffer, caption: `🎨 *AI Generated Image*\n✨ *Prompt:* ${q}\n🤖 *Model:* ${cmd}\n━━━━━━━━━━━━━━━━━━━━━━\n${botFooter}` }, { quoted: m });
-                await nimesha.sendMessage(m.chat, { delete: waitMsg.key });
+                await editAutoDelete(nimesha, m.chat, `✅ *AI Image සාර්ථකයි!*\n✨ *Prompt:* ${q}`, botFooter, waitMsg.key);
             } else {
                 await nimesha.sendMessage(m.chat, { text: `❌ Image generate කිරීමට නොහැකිය\n${botFooter}`, edit: waitMsg.key });
             }
@@ -1164,7 +1182,7 @@ ${botFooter}`;
                 const result = await removeBackground(imageBuffer);
                 if (result) {
                     await nimesha.sendMessage(m.chat, { image: result, caption: `✅ *Background Removed!*\n${botFooter}` }, { quoted: m });
-                    await nimesha.sendMessage(m.chat, { delete: waitMsg.key });
+                    await editAutoDelete(nimesha, m.chat, `✅ *Background Removed සාර්ථකයි!*`, botFooter, waitMsg.key);
                 } else { await nimesha.sendMessage(m.chat, { text: `❌ Background remove කිරීමට නොහැකිය\n${botFooter}`, edit: waitMsg.key }); }
             } catch (e) { await sendAutoDelete(nimesha, m.chat, `❌ Error: ${e.message}`, botFooter, { quoted: m }); }
         }
@@ -1248,9 +1266,9 @@ ${botFooter}`;
                         }
                     });
                 });
-                // sticker send
-                try { await nimesha.sendMessage(m.chat, { delete: atttpWaitMsg.key }); } catch(e) {}
+                // sticker send + processing msg → done msg (countdown + delete)
                 await nimesha.sendMessage(m.chat, { sticker: webpBuffer }, { quoted: m });
+                await editAutoDelete(nimesha, m.chat, `✅ *ATTP Sticker සාර්ථකයි!*\n🎨 *Text:* ${q}`, botFooter, atttpWaitMsg.key);
             } catch (ffErr) {
                 // ffmpeg fail — API fallback
                 console.log('ATTP ffmpeg fail:', ffErr.message.slice(0, 200));
@@ -1259,10 +1277,10 @@ ${botFooter}`;
                     async () => { const r = await axios.get(`https://api.lolhuman.xyz/api/attp?apikey=demo&text=${encodeURIComponent(q)}`, { responseType: 'arraybuffer', timeout: 15000 }); return Buffer.from(r.data); }
                 ]);
                 if (imgBuffer) {
-                    try { await nimesha.sendMessage(m.chat, { delete: atttpWaitMsg.key }); } catch(e) {}
                     await nimesha.sendMessage(m.chat, { sticker: imgBuffer }, { quoted: m });
+                    await editAutoDelete(nimesha, m.chat, `✅ *ATTP Sticker සාර්ථකයි!*\n🎨 *Text:* ${q}`, botFooter, atttpWaitMsg.key);
                 } else {
-                    // සියල්ල fail — error edit
+                    // සියල්ල fail — error edit + countdown
                     await editAutoDelete(nimesha, m.chat, `❌ ATTP generate කිරීමට නොහැකිය`, botFooter, atttpWaitMsg.key);
                 }
             }
@@ -1281,7 +1299,7 @@ ${botFooter}`;
             ]);
             if (imgBuffer) {
                 await nimesha.sendMessage(m.chat, { image: imgBuffer, caption: `🎨 *${cmd.toUpperCase()} Text Art*\n📝 *Text:* ${q}\n━━━━━━━━━━━━━━━━━━━━━━\n${botFooter}` }, { quoted: m });
-                await nimesha.sendMessage(m.chat, { delete: waitMsg.key });
+                await editAutoDelete(nimesha, m.chat, `✅ *Text Art සාර්ථකයි!*\n✨ *Style:* ${cmd}`, botFooter, waitMsg.key);
             } else { await nimesha.sendMessage(m.chat, { text: `❌ Text art generate කිරීමට නොහැකිය\n${botFooter}`, edit: waitMsg.key }); }
         }
 
