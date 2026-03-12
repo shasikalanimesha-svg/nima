@@ -570,6 +570,9 @@ const cleanup = async (signal) => {
 process.on('SIGINT', () => cleanup('SIGINT'))
 process.on('SIGTERM', () => cleanup('SIGTERM'))
 process.on('exit', () => cleanup('exit'))
+// SIGUSR1 default ලෙස Node.js debugger activate කරනවා — override කරනවා
+process.on('SIGUSR1', () => console.log('SIGUSR1 received — ignored'))
+process.on('SIGUSR2', () => console.log('SIGUSR2 received — ignored'))
 
 server.on('error', (error) => {
 	if (error.code === 'EADDRINUSE') {
