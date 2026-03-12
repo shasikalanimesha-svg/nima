@@ -689,6 +689,9 @@ ${botFooter}`;
 🔗 ${GROUP_INVITE_LINK}`,
                         botFooter, { quoted: m });
                 }
+                // private blocked flag — nima.js ද block වෙන්නට
+                if (!global._privateBlocked) global._privateBlocked = new Set();
+                global._privateBlocked.add(m.key.id);
                 return;
             }
 
@@ -1181,9 +1184,9 @@ ${botFooter}`;
                     ff.on('error', reject);
                     ff.on('close', code => code === 0 ? resolve(Buffer.concat(chunks)) : reject(new Error(Buffer.concat(errors).toString())));
                 });
-                // mp4 → animated webp convert කරනවා
-                const { writeExif } = require('./lib/exif');
-                const webpBuffer = await writeExif(mp4Buffer, { packname: 'Miss Shasikala', author: 'Nimesha' });
+                // mp4 → animated webp convert කරනවා (videoToWebp = direct mp4→webp)
+                const { videoToWebp } = require('./lib/exif');
+                const webpBuffer = await videoToWebp(mp4Buffer);
                 try { await nimesha.sendMessage(m.chat, { delete: atttpWaitMsg.key }); } catch(e) {}
                 await nimesha.sendMessage(m.chat, { sticker: webpBuffer }, { quoted: m });
             } catch (ffErr) {

@@ -207,6 +207,10 @@ module.exports = nimesha = async (nimesha, m, msg, store) => {
 				if (m.isGroup) return
 			}
 		}
+
+		// 🔒 Private chat — owner නොවේ නම් commands block
+		// shasikala.js redirect message handle කරනවා
+		if (!m.isGroup && !isCreator && isCmd) return
 		
 		// Group Settings
 		if (m.isGroup) {
