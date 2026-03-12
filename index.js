@@ -467,7 +467,7 @@ async function startnimaBot() {
 ╠══════════════════╣
 ║ 🌸 *${global.botname || 'MISS SHASIKALA'}* I [MINI BOT]
 ║ 👑 *By ${global.ownerName || global.author || 'NIMESHA MADHUSHAN'}*
-╚══════════════════╝\n${botFooter}`;
+╚══════════════════╝`;
 			setTimeout(async () => {
 				await nimaBot.sendMessage(ownerJid, { text: connectMsg }).catch(e => {});
 			}, 3000);
