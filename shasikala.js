@@ -529,8 +529,8 @@ module.exports = shasikala = async (nimesha, m, msg, store) => {
         const botNumber = nimesha.decodeJid(nimesha.user.id);
         const set = global.db?.set?.[botNumber] || {};
         const botFooter = global.db?.set?.[botNumber]?.botname
-            ? `> 🌸 *${global.db.set[botNumber].botname}* [BOT]✨`
-            : global.mess?.footer || '> 🌸 *MISS SHASIKALA* [BOT]✨ | 👑 _නිමේශ මධුශන්_';
+            ? `> 🌸 *${global.db.set[botNumber].botname}* [MINI BOT]✨`
+            : global.mess?.footer || '> 🌸 *MISS SHASIKALA* [MINI BOT]✨ | 👑 _NIMESHA MADHUSHAN_';
         const prefix = m.prefix || '.';
 
         const moment = require('moment-timezone');
