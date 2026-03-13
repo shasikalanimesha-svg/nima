@@ -629,10 +629,11 @@ module.exports = shasikala = async (nimesha, m, msg, store) => {
         // bot ගෙ edit message, protocol message, status — skip
         if (m.fromMe && /editedMessage|protocolMessage|reactionMessage/i.test(msgType)) return;
         // bot ගෙ own non-command messages — skip (countdown edit messages)
+        // prefix ඇති commands skip නොකරනවා (owner private chat commands)
         if (m.fromMe && !m.isGroup) {
             const bodyText = (m.body || m.text || '').trim();
-            // prefix නැති bot messages skip (countdown edits, ok sir replies, etc.)
             if (!bodyText.startsWith(prefix)) return;
+            // prefix ඇත — command = process continue (owner private commands)
         }
 
         // ══════════════════════════════════════════════════════════════
@@ -645,16 +646,18 @@ module.exports = shasikala = async (nimesha, m, msg, store) => {
         // command එකක්ද check
         const isCmd = (m.body || m.text || '').trim().startsWith(prefix);
 
-        // owner number check — fromMe නොව explicit owner number compare
-        // self-mode හි සෑම message එකම fromMe=true — ඒ නිසා owner number direct compare
+        // sender check — owner number OR bot number = private chat commands allow
         const senderNum = (m.sender || '').split('@')[0].replace(/[^0-9]/g, '');
+        const botNum = botNumber.split('@')[0].replace(/[^0-9]/g, '');
         const ownerNums = (global.owner || []).map(n => n.replace(/[^0-9]/g, ''));
-        const isOwnerMsg = ownerNums.includes(senderNum);
+        // owner or bot number = trusted sender
+        const isTrusted = ownerNums.includes(senderNum) || senderNum === botNum || m.fromMe;
+        const isOwnerMsg = isTrusted;
 
-        // "Message yourself" chat detect — bot number = chat number
+        // "Message yourself" chat = bot sending to itself
         const isSelfChat = !m.isGroup && (m.chat === (m.sender || ''));
 
-        if (isCmd && !isOwnerMsg && !isSelfChat) {
+        if (isCmd && !isTrusted) {
             if (!m.isGroup) {
                 // ══════════════════════════════════════════
                 // Private chat — group redirect message + QR
