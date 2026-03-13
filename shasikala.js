@@ -1587,6 +1587,15 @@ ${botFooter}`;
                 const btnKey = btnMsg?.key || null;
 
                 pendingDownload.set(m.sender, { type: 'song', input, url: videoUrl, displayTitle, statusKey: searchKey, buttonKey: btnKey });
+
+                // 330s තුළ button click නොකළොත් — searching + button messages delete
+                setTimeout(async () => {
+                    if (pendingDownload.has(m.sender) && pendingDownload.get(m.sender).buttonKey === btnKey) {
+                        pendingDownload.delete(m.sender);
+                        try { if (btnKey) await nimesha.sendMessage(m.chat, { delete: btnKey }); } catch(e) {}
+                        try { if (searchKey) await nimesha.sendMessage(m.chat, { delete: searchKey }); } catch(e) {}
+                    }
+                }, AUTO_DELETE_SECS * 1000);
             } catch (err) { await sendAutoDelete(nimesha, m.chat, `⚠️ *දෝෂයකි:* ${err.message}`, botFooter, { quoted: m }); }
         }
 
@@ -1638,6 +1647,15 @@ ${botFooter}`;
                 const vidBtnKey = vidBtnMsg?.key || null;
 
                 pendingDownload.set(m.sender, { type: 'video', input, url: videoUrl, displayTitle, statusKey: vidSearchKey, buttonKey: vidBtnKey });
+
+                // 330s තුළ button click නොකළොත් — searching + button messages delete
+                setTimeout(async () => {
+                    if (pendingDownload.has(m.sender) && pendingDownload.get(m.sender).buttonKey === vidBtnKey) {
+                        pendingDownload.delete(m.sender);
+                        try { if (vidBtnKey) await nimesha.sendMessage(m.chat, { delete: vidBtnKey }); } catch(e) {}
+                        try { if (vidSearchKey) await nimesha.sendMessage(m.chat, { delete: vidSearchKey }); } catch(e) {}
+                    }
+                }, AUTO_DELETE_SECS * 1000);
             } catch (err) { await sendAutoDelete(nimesha, m.chat, `⚠️ *දෝෂයකි:* ${err.message}`, botFooter, { quoted: m }); }
         }
 
