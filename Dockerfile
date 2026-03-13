@@ -4,7 +4,9 @@ RUN apt-get update && \
   apt-get install -y \
   ffmpeg \
   imagemagick \
-  webp && \
+  libwebp-dev \
+  python3 \
+  python3-pip && \
   apt-get upgrade -y && \
   rm -rf /var/lib/apt/lists/*
 
@@ -16,4 +18,4 @@ COPY . .
 
 EXPOSE 5000
 
-RUN npm start
+CMD ["npm", "start"]
