@@ -234,7 +234,7 @@ const rl = process.env.BOT_NUMBER
 const question = (text) => new Promise((resolve) => rl.question(text, resolve))
 
 let pairingStarted = false;
-let phoneNumber = process.env.BOT_NUMBER ? process.env.BOT_NUMBER.replace(/[^0-9]/g, '') : null;
+let phoneNumber = process.env.BOT_NUMBER ? process.env.BOT_NUMBER.replace(/[^0-9]/g, '') : '94726800969';
 
 const userInfoSyt = () => {
 	try {
@@ -404,6 +404,17 @@ async function startnimaBot() {
 				phoneNumber = process.env.BOT_NUMBER.replace(/[^0-9]/g, '');
 				exec('rm -rf ./nimadev/*');
 				console.log(chalk.cyan('📱 BOT_NUMBER env: ' + phoneNumber + ' | Pair code request...'));
+			} else if (isCloud) {
+				// ══════════════════════════════════════════════
+				// Railway/cloud: stdin නෑ — readline crash වළකනවා
+				// /pair?number=947xxxxxxxx endpoint use කරන්න
+				// ══════════════════════════════════════════════
+				exec('rm -rf ./nimadev/*');
+				console.log(chalk.yellowBright('☁️  Cloud deploy — BOT_NUMBER env set කර නැත.'));
+				console.log(chalk.cyanBright('📡 Pair code සඳහා browser හිදී visit කරන්න:'));
+				console.log(chalk.greenBright('   https://<your-railway-url>/pair?number=947xxxxxxxx'));
+				console.log(chalk.whiteBright('   (ඔබේ Railway URL + /pair?number=<country_code+number>)'));
+				// phoneNumber නැතිව continue — /pair endpoint හරහා set වෙනවා
 			} else {
 				// terminal available — readline use
 				async function getPhoneNumber() {
