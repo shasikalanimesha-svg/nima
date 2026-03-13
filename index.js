@@ -227,7 +227,10 @@ const shasikala = require('./shasikala');
 
 const print = (label, value) => console.log(`${chalk.green.bold('║')} ${chalk.cyan.bold(label.padEnd(16))}${chalk.yellow.bold(':')} ${value}`);
 const pairingCode = true;
-const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
+// Railway/cloud deploy — readline stdin නෑ, BOT_NUMBER env use කරනවා
+const rl = process.env.BOT_NUMBER 
+    ? { question: (t, cb) => cb(process.env.BOT_NUMBER), close: () => {} }
+    : readline.createInterface({ input: process.stdin, output: process.stdout })
 const question = (text) => new Promise((resolve) => rl.question(text, resolve))
 
 let pairingStarted = false;
