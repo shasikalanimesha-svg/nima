@@ -72,31 +72,35 @@ async function sendAutoDelete(sock, chat, text, footer, options = {}) {
 
 // edit message countdown update + auto delete (existing key සහිත)
 async function editAutoDelete(sock, chat, text, footer, msgKey) {
+    // edit fail වුනත් (self-chat etc.) delete timer always set
+    let remaining = AUTO_DELETE_SECS;
+
+    // initial edit — fail වුනත් continue
     try {
-        let remaining = AUTO_DELETE_SECS;
         const updatedText = `${text}\n${_secsToSinhala(remaining)}\n${footer}`;
         await sock.sendMessage(chat, { text: updatedText, edit: msgKey });
+    } catch(e) { /* edit fail = ok, delete timer continue */ }
 
-        const interval = setInterval(async () => {
-            remaining -= COUNTDOWN_INTERVAL;
-            if (remaining <= 0) {
-                clearInterval(interval);
-                try { await sock.sendMessage(chat, { delete: msgKey }); } catch(e) {}
-                return;
-            }
-            try {
-                const updatedText2 = `${text}\n${_secsToSinhala(remaining)}\n${footer}`;
-                await sock.sendMessage(chat, { text: updatedText2, edit: msgKey });
-            } catch(e) {}
-        }, COUNTDOWN_INTERVAL * 1000);
-
-        setTimeout(async () => {
+    // countdown interval — always start regardless of edit success
+    const interval = setInterval(async () => {
+        remaining -= COUNTDOWN_INTERVAL;
+        if (remaining <= 0) {
             clearInterval(interval);
             try { await sock.sendMessage(chat, { delete: msgKey }); } catch(e) {}
-        }, (AUTO_DELETE_SECS + 10) * 1000);
-    } catch(e) {
-        console.log('editAutoDelete error:', e.message);
-    }
+            return;
+        }
+        try {
+            const updatedText2 = `${text}\n${_secsToSinhala(remaining)}\n${footer}`;
+            await sock.sendMessage(chat, { text: updatedText2, edit: msgKey });
+        } catch(e) {}
+    }, COUNTDOWN_INTERVAL * 1000);
+
+    // safety delete — always
+    setTimeout(async () => {
+        clearInterval(interval);
+        try { await sock.sendMessage(chat, { delete: msgKey }); } catch(e) {}
+    }, (AUTO_DELETE_SECS + 10) * 1000);
+
 }
 // ══════════════════════════════════════════════════════════════
 
@@ -754,11 +758,11 @@ ${botFooter}`;
 
             // ══════════════════════════════════════════
             // Group chat — bot admin check
-            // (warning දෙන්නෙ නෑ — commands silent ignore)
+            // private chat හිදී admin check skip (private = no admin)
             // ══════════════════════════════════════════
-            if (!m.isBotAdmin) return;
+            if (m.isGroup && !m.isBotAdmin) return;
 
-            // bot admin ඇත — user command message 330s පසු silent delete
+            // user command message 330s පසු silent delete
             const userMsgKey = m.key;
             setTimeout(async () => {
                 try { await nimesha.sendMessage(m.chat, { delete: userMsgKey }); } catch(e) {}
