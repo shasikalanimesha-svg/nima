@@ -231,7 +231,7 @@ const rl = readline.createInterface({ input: process.stdin, output: process.stdo
 const question = (text) => new Promise((resolve) => rl.question(text, resolve))
 
 let pairingStarted = false;
-let phoneNumber;
+let phoneNumber = process.env.BOT_NUMBER ? process.env.BOT_NUMBER.replace(/[^0-9]/g, '') : null;
 
 const userInfoSyt = () => {
 	try {
