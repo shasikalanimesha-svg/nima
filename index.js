@@ -394,20 +394,29 @@ async function startnimaBot() {
 	})
 	
 	if (pairingCode && !nimaBot.authState.creds.registered) {
+		// BOT_NUMBER env var හෝ readline — Railway/cloud හිදී env var use
 		if (!phoneNumber) {
-			async function getPhoneNumber() {
-				phoneNumber = process.env.BOT_NUMBER || await question('කරුණාකර ඔබගේ WhatsApp අංකය ඇතුළත් කරන්න (Ex: 947xxxxxxxx): ');
-				phoneNumber = phoneNumber.replace(/[^0-9]/g, '')
-				if (!parsePhoneNumber('+' + phoneNumber).valid && phoneNumber.length < 6) {
-					console.log(chalk.bgBlack(chalk.redBright('ඔබේ රටේ කේතය (Country Code) සමඟ අංකය ආරම්භ කරන්න.') + chalk.whiteBright(',') + chalk.greenBright(' උදාහරණ : 947xxxxxxxx')));
-					await getPhoneNumber()
-				}
-			}
-			(async () => {
-				await getPhoneNumber();
+			if (process.env.BOT_NUMBER) {
+				// env var set — readline skip
+				phoneNumber = process.env.BOT_NUMBER.replace(/[^0-9]/g, '');
 				exec('rm -rf ./nimadev/*');
-				console.log('දුරකතන අංකය ලබා ගත්තා. සම්බන්ධ වන තෙක් රැඳී සිටින්න...\n' + chalk.blueBright('ඇස්තමේන්තුගත කාලය: මිනිත්තු 2 ~ 5 පමණ'))
-			})()
+				console.log(chalk.cyan('📱 BOT_NUMBER env: ' + phoneNumber + ' | Pair code request...'));
+			} else {
+				// terminal available — readline use
+				async function getPhoneNumber() {
+					phoneNumber = await question('කරුණාකර ඔබගේ WhatsApp අංකය ඇතුළත් කරන්න (Ex: 947xxxxxxxx): ');
+					phoneNumber = phoneNumber.replace(/[^0-9]/g, '')
+					if (!parsePhoneNumber('+' + phoneNumber).valid && phoneNumber.length < 6) {
+						console.log(chalk.bgBlack(chalk.redBright('ඔබේ රටේ කේතය (Country Code) සමඟ අංකය ආරම්භ කරන්න.') + chalk.whiteBright(',') + chalk.greenBright(' උදාහරණ : 947xxxxxxxx')));
+						await getPhoneNumber()
+					}
+				}
+				(async () => {
+					await getPhoneNumber();
+					exec('rm -rf ./nimadev/*');
+					console.log('දුරකතන අංකය ලබා ගත්තා. සම්බන්ධ වන තෙක් රැඳී සිටින්න...\n' + chalk.blueBright('ඇස්තමේන්තුගත කාලය: මිනිත්තු 2 ~ 5 පමණ'))
+				})()
+			}
 		} else {
 			exec('rm -rf ./nimadev/*');
 			console.log(chalk.cyan('📱 Number set: ' + phoneNumber + ' | Pair code request සඳහා සූදානම්...'))
