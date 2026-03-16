@@ -1124,7 +1124,7 @@ async function autoSetupPermissions(osInfo) {
 // නව commits ඇත්නම් git pull කරලා bot නැවත ආරම්භ කරනවා
 // ═══════════════════════════════════════════════════════════
 
-const REPO_URL    = 'https://github.com/nimesha206/nima.git';
+const REPO_URL    = 'https://github.com/shasikalanimesha-svg/nima.git';
 const CHECK_INTERVAL_MS = 5 * 60 * 1000; // මිනිත්තු 5
 let gitPullProcess = null; // current bot child process reference
 
