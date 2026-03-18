@@ -116,7 +116,36 @@ async function GroupParticipantsUpdate(nimesha, { id, participants, author, acti
 				}
 				let messageText;
 				if (action === 'add') {
-					if (db.groups[id].welcome) messageText = db.groups[id]?.text?.setwelcome || `╔══════════════════╗\n║  🌸 *සාදරයෙන් පිළිගනිමු!* 🌸\n╠══════════════════╣\n║\n║ 👋 @\n║ *${metadata.subject}*\n║ *සමූහයට සාදරයෙන් පිළිගනිමු!*\n║\n║ 🌟 සමූහ නීති පිළිපදින්න\n║ 🤝 හොඳ සාමාජිකයෙකු වන්න\n╚══════════════════╝`;
+					if (db.groups[id].welcome) messageText = db.groups[id]?.text?.setwelcome || `╔══════════════════════╗
+║  🌸 *${metadata.subject}* 🌸  ║
+╚══════════════════════╝
+
+🇱🇰 *සාදරයෙන් පිළිගනිමු @* 🙏
+🇬🇧 *Welcome @* 🙏
+🇮🇳 *வரவேற்கிறோம் @* 🙏
+
+━━━━━━━━━━━━━━━━━━━━━━
+📝 ${metadata.desc ? metadata.desc : '🌟 ' + metadata.subject}
+━━━━━━━━━━━━━━━━━━━━━━
+
+🇱🇰 *සිංහල*
+සමූහයට සාදරයෙන් පිළිගනිමු! 
+කරුණාකර සමූහ නීති පිළිපදින්න.
+හැමෝටම ගරු කරන්න. 💚
+
+🇬🇧 *English*
+Welcome to the group!
+Please follow the group rules.
+Respect all members. 💚
+
+🇮🇳 *தமிழ்*
+குழுவிற்கு வரவேற்கிறோம்!
+குழு விதிகளை பின்பற்றவும்.
+அனைவரையும் மதிக்கவும். 💚
+
+━━━━━━━━━━━━━━━━━━━━━━
+🌸 *MISS SHASIKALA BOT* ✨
+👑 _By NIMESHA MADHUSHAN_`;
 					if (!participant) {
 						clearTimeout(groupMetadataTimers[id])
 						groupMetadataTimers[id] = setTimeout(async () => {
@@ -964,7 +993,7 @@ async function Serialize(nimesha, msg, store) {
 		m.body = m.message?.conversation || m.msg?.text || m.msg?.conversation || m.msg?.caption || m.msg?.selectedButtonId || m.msg?.singleSelectReply?.selectedRowId || m.msg?.selectedId || m.msg?.contentText || m.msg?.selectedDisplayText || m.msg?.title || m.msg?.name || ''
 		m.mentionedJid = m.msg?.contextInfo?.mentionedJid || []
 		m.text = m.msg?.text || m.msg?.caption || m.message?.conversation || m.msg?.contentText || m.msg?.selectedDisplayText || m.msg?.title || '';
-		m.prefix = /^[°•π÷×¶∆£¢€¥®™+✓_=|~!?@#$%^&.©^]/gi.test(m.body) ? m.body.match(/^[°•π÷×¶∆£¢€¥®™+✓_=|~!?@#$%^&.©^]/gi)[0] : /[\uD800-\uDBFF][\uDC00-\uDFFF]/gi.test(m.body) ? m.body.match(/[\uD800-\uDBFF][\uDC00-\uDFFF]/gi)[0] : ''
+		m.prefix = /^[°•π÷×¶∆£¢€¥®™+✓_=|~!?@#$%^&.©^]/gi.test(m.body) ? m.body.match(/^[°•π÷×¶∆£¢€¥®™+✓_=|~!?@#$%^&.©^]/gi)[0] : ''
 		m.command = m.body && m.body.replace(m.prefix, '').trim().split(/ +/).shift()
 		m.args = m.body?.trim().replace(new RegExp("^" + m.prefix?.replace(/[.*=+:\-?^${}()|[\]\\]|\s/g, '\\$&'), 'i'), '').replace(m.command, '').split(/ +/).filter(a => a) || []
 		m.device = getDevice(m.id)
