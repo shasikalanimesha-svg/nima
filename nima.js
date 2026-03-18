@@ -109,7 +109,7 @@ module.exports = nimesha = async (nimesha, m, msg, store) => {
 		
 		const budy = (typeof m.text == 'string' ? m.text : '')
 		const isCreator = isOwner = m.fromMe || ownerNumber.filter(v => typeof v === 'string').map(v => v.replace(/[^0-9]/g, '')).includes(m.sender.split('@')[0])
-		const prefix = isCreator ? (/^[°•π÷×¶∆£¢€¥®™+✓_=|~!?@()#,'"*+÷/\%^&.©^]/gi.test(body) ? body.match(/^[°•π÷×¶∆£¢€¥®™+✓_=|~!?@()#,'"*+÷/\%^&.©^]/gi)[0] : /[\uD800-\uDBFF][\uDC00-\uDFFF]/gi.test(body) ? body.match(/[\uD800-\uDBFF][\uDC00-\uDFFF]/gi)[0] : listprefix.find(a => body?.startsWith(a)) || '') : set.multiprefix ? (/^[°•π÷×¶∆£¢€¥®™+✓_=|~!?@()#,'"*+÷/\%^&.©^]/gi.test(body) ? body.match(/^[°•π÷×¶∆£¢€¥®™+✓_=|~!?@()#,'"*+÷/\%^&.©^]/gi)[0] : /[\uD800-\uDBFF][\uDC00-\uDFFF]/gi.test(body) ? body.match(/[\uD800-\uDBFF][\uDC00-\uDFFF]/gi)[0] : listprefix.find(a => body?.startsWith(a)) || '¿') : listprefix.find(a => body?.startsWith(a)) || '¿'
+		const prefix = isCreator ? (/^[°•π÷×¶∆£¢€¥®™+✓_=|~!?@()#,'"*+÷/\%^&.©^]/gi.test(body) ? body.match(/^[°•π÷×¶∆£¢€¥®™+✓_=|~!?@()#,'"*+÷/\%^&.©^]/gi)[0] : listprefix.find(a => body?.startsWith(a)) || '') : set.multiprefix ? (/^[°•π÷×¶∆£¢€¥®™+✓_=|~!?@()#,'"*+÷/\%^&.©^]/gi.test(body) ? body.match(/^[°•π÷×¶∆£¢€¥®™+✓_=|~!?@()#,'"*+÷/\%^&.©^]/gi)[0] : listprefix.find(a => body?.startsWith(a)) || '¿') : listprefix.find(a => body?.startsWith(a)) || '¿'
 		const isCmd = body.startsWith(prefix)
 		const args = body.trim().split(/ +/).slice(1)
 		const quoted = m.quoted ? m.quoted : m
@@ -1704,11 +1704,17 @@ _ස්තූතියි!_ 🌸`).then(() => {
 				if (!m.isAdmin) return m.reply(mess.admin)
 				if (!m.isBotAdmin) return m.reply(mess.botAdmin)
 				let setv = pickRandom(listv)
-				let teks = `*සියල්ලන් ටැග්*\n\n*පණිවිඩය:* ${q ? q : ''}\n\n`
-				for (let mem of m.metadata.participants) {
-					teks += `${setv} @${mem.id.split('@')[0]}\n`
+				let members = m.metadata.participants
+				let chunkSize = 50
+				for (let i = 0; i < members.length; i += chunkSize) {
+					let chunk = members.slice(i, i + chunkSize)
+					let teks = i === 0 ? `*සියල්ලන් ටැග්*\n\n*පණිවිඩය:* ${q ? q : ''}\n\n` : ''
+					for (let mem of chunk) {
+						teks += `${setv} @${mem.id.split('@')[0]}\n`
+					}
+					await m.reply(teks, { mentions: chunk.map(a => a.id) })
+					await new Promise(res => setTimeout(res, 1000))
 				}
-				await m.reply(teks, { mentions: m.metadata.participants.map(a => a.id) })
 			}
 			break
 			case 'hidetag': case 'h': {
