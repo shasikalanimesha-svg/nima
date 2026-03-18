@@ -8,7 +8,6 @@ RUN apt-get update && \
   imagemagick \
   libwebp-dev \
   ghostscript \
-  aria2 \
   sox \
   python3 \
   python3-pip \
