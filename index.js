@@ -383,8 +383,9 @@ async function startnimaBot() {
 		msgRetryCounterCache,
 		retryRequestDelayMs: 10,
 		defaultQueryTimeoutMs: 0,
-		connectTimeoutMs: 60000,
-		keepAliveIntervalMs: 30000,
+		connectTimeoutMs: 120000,
+		keepAliveIntervalMs: 10000,
+		maxRetries: 10,
 		GenerateHighQualityLinkPreview: false,
 		markOnlineOnConnect: false,
 		printQRInTerminal: false,
@@ -487,19 +488,18 @@ async function startnimaBot() {
 			} else if (reason === DisconnectReason.connectionReplaced) {
 				console.log('⚠️ වෙනත් device එafrika සිටින්න.');
 			} else if (reason === DisconnectReason.loggedOut) {
-				console.log('🚪 Logged Out! නැවත scan කර run කරන්න.');
-				exec('rm -rf ./nimadev/*')
-				process.exit(1)
+				console.log('🚪 Logged Out — session නොමකා 30s කින් reconnect කරමින්...');
+				// session DELETE නොකරනවා — reconnect try කරනවා
+				setTimeout(() => startnimaBot(), 30000);
 			} else if (reason === DisconnectReason.forbidden) {
-				console.log('❌ Connection failed! නැවත scan කරන්න.');
-				exec('rm -rf ./nimadev/*')
-				process.exit(1)
+				console.log('❌ Forbidden — 60s කින් reconnect...');
+				setTimeout(() => startnimaBot(), 60000);
 			} else if (reason === DisconnectReason.multideviceMismatch) {
-				console.log('⚠️ Multi-device error! නැවත scan කරන්න.');
-				exec('rm -rf ./nimadev/*')
-				process.exit(0)
+				console.log('⚠️ Multi-device mismatch — 30s කින් reconnect...');
+				setTimeout(() => startnimaBot(), 30000);
 			} else {
-				nimaBot.end(`හඳුනා නොගත් බිඳ වැටීමක්: ${reason}|${connection}`)
+				console.log(`⚠️ Unknown disconnect (${reason}) — 15s කින් reconnect...`);
+				setTimeout(() => startnimaBot(), 15000);
 			}
 		}
 		if (connection == 'open') {
