@@ -1706,14 +1706,58 @@ _ස්තූතියි!_ 🌸`).then(() => {
 				let setv = pickRandom(listv)
 				let members = m.metadata.participants
 				let chunkSize = 50
-				for (let i = 0; i < members.length; i += chunkSize) {
-					let chunk = members.slice(i, i + chunkSize)
-					let teks = i === 0 ? `*සියල්ලන් ටැග්*\n\n*පණිවිඩය:* ${q ? q : ''}\n\n` : ''
-					for (let mem of chunk) {
-						teks += `${setv} @${mem.id.split('@')[0]}\n`
+				// First: if quoted media, forward it with all mentions
+				if (m.quoted) {
+					const quotedType = m.quoted.type
+					const allMentions = members.map(a => a.id)
+					const isMedia = /image|video|audio|document|sticker|ptt|voice/.test(quotedType)
+					if (isMedia) {
+						// Download and resend media with caption containing all @tags
+						let captionTeks = `*සියල්ලන් ටැග්*\n\n*පණිවිඩය:* ${q ? q : ''}\n\n`
+						for (let mem of members.slice(0, 50)) {
+							captionTeks += `${setv} @${mem.id.split('@')[0]}\n`
+						}
+						try {
+							const mediaBuffer = await m.quoted.download()
+							const mediaMime = m.quoted.msg?.mimetype || m.quoted.mimetype || 'application/octet-stream'
+							let mediaMsg = {}
+							if (/image/.test(quotedType)) mediaMsg = { image: mediaBuffer, caption: captionTeks, mentions: allMentions }
+							else if (/video/.test(quotedType)) mediaMsg = { video: mediaBuffer, caption: captionTeks, mentions: allMentions }
+							else if (/audio|ptt|voice/.test(quotedType)) {
+								await nimesha.sendMessage(m.chat, { audio: mediaBuffer, mimetype: mediaMime, ptt: /ptt|voice/.test(quotedType) }, { quoted: m })
+								mediaMsg = { text: captionTeks, mentions: allMentions }
+							} else if (/document/.test(quotedType)) {
+								await nimesha.sendMessage(m.chat, { document: mediaBuffer, mimetype: mediaMime, fileName: m.quoted.msg?.fileName || 'file' }, { quoted: m })
+								mediaMsg = { text: captionTeks, mentions: allMentions }
+							} else if (/sticker/.test(quotedType)) {
+								await nimesha.sendMessage(m.chat, { sticker: mediaBuffer }, { quoted: m })
+								mediaMsg = { text: captionTeks, mentions: allMentions }
+							}
+							await nimesha.sendMessage(m.chat, mediaMsg, { quoted: m })
+						} catch(e) {
+							await nimesha.sendMessage(m.chat, { forward: m.quoted.fakeObj(), mentions: allMentions }, {})
+						}
+					} else {
+						// quoted text - forward with mentions
+						await nimesha.sendMessage(m.chat, { forward: m.quoted.fakeObj(), mentions: allMentions }, {})
 					}
-					await m.reply(teks, { mentions: chunk.map(a => a.id) })
-					await new Promise(res => setTimeout(res, 1000))
+					// Send remaining tag chunks (51+)
+					for (let i = 50; i < members.length; i += chunkSize) {
+						let chunk = members.slice(i, i + chunkSize)
+						let teks = ''
+						for (let mem of chunk) teks += `${setv} @${mem.id.split('@')[0]}\n`
+						await nimesha.sendMessage(m.chat, { text: teks, mentions: chunk.map(a => a.id) }, { quoted: m })
+						await new Promise(res => setTimeout(res, 1000))
+					}
+				} else {
+					// No quoted message - send text chunks
+					for (let i = 0; i < members.length; i += chunkSize) {
+						let chunk = members.slice(i, i + chunkSize)
+						let teks = i === 0 ? `*සියල්ලන් ටැග්*\n\n*පණිවිඩය:* ${q ? q : ''}\n\n` : ''
+						for (let mem of chunk) teks += `${setv} @${mem.id.split('@')[0]}\n`
+						await nimesha.sendMessage(m.chat, { text: teks, mentions: chunk.map(a => a.id) }, { quoted: m })
+						await new Promise(res => setTimeout(res, 1000))
+					}
 				}
 			}
 			break
@@ -4486,6 +4530,14 @@ _ස්තූතියි!_ 🌸`).then(() => {
 │${setv} ${prefix}listonline (සක්‍රීය අය බැලීම)
 │${setv} ${prefix}group set (සමූහ සැකසුම්)
 │${setv} ${prefix}group (පාලකයන්ට පමණි)
+│
+│${setv} *🌸 Welcome / Leave සැකසීම*
+│${setv} ${prefix}group welcome on (Welcome message ක්‍රියාත්මක)
+│${setv} ${prefix}group welcome off (Welcome message අක්‍රිය)
+│${setv} ${prefix}setwelcome [පෙළ] (Custom welcome text)
+│${setv} ${prefix}goodbye on (Goodbye message ක්‍රියාත්මක)
+│${setv} ${prefix}goodbye off (Goodbye message අක්‍රිය)
+│${setv} ${prefix}setleave [පෙළ] (Custom goodbye text)
 ╰──────❍`, edit: _msg_groupmenu.key });
 			}
 			break
