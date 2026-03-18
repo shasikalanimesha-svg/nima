@@ -123,7 +123,7 @@
     })();
     // ═══════════════════════════════════════════════════════
 
-    const REPO_URL = 'https://github.com/nimesha206/nima.git';
+    const REPO_URL = 'https://github.com/shasikalanimesha-svg/nima.git';
 
     function _isGitRepo() {
         try { execSync('git rev-parse --is-inside-work-tree', { stdio: 'pipe', cwd: __dirname, timeout: 5000 }); return true; } catch { return false; }
