@@ -1704,7 +1704,15 @@ _ස්තූතියි!_ 🌸`).then(() => {
 				if (!m.isAdmin) return m.reply(mess.admin)
 				if (!m.isBotAdmin) return m.reply(mess.botAdmin)
 				let setv = pickRandom(listv)
-				let members = m.metadata.participants
+				// LID format group නම් real JID resolve කරනවා
+				let members = m.metadata.participants.map(p => {
+					if (p.id && p.id.endsWith('@lid') && p.lid) {
+						const real = nimesha.findJidByLid ? nimesha.findJidByLid(p.id, store) : null
+						return { ...p, id: (real && !real.endsWith('@lid')) ? real : (p.jid || p.id) }
+					}
+					return p
+				}).filter(p => p.id && !p.id.endsWith('@lid'))
+				if (!members.length) members = m.metadata.participants
 				let chunkSize = 50
 				// First: if quoted media, forward it with all mentions
 				if (m.quoted) {
