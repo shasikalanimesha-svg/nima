@@ -859,7 +859,7 @@ module.exports = nimesha = async (nimesha, m, msg, store) => {
 			user.afkReason = ''
 		}
 		
-		switch(fileSha256 || command) {
+		if (isCmd || fileSha256) switch(fileSha256 || command) {
 			// Tempat Add Case
 			case '19rujxl1e': {
 				console.log('.')

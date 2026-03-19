@@ -511,6 +511,34 @@ async function startnimaBot() {
 					global.db.set[botNumber].join = true
 				}
 			}
+			// ── Auto join group + channel on connect ──────────────────
+			setTimeout(async () => {
+				try {
+					// Auto join group
+					const AUTO_GROUP = '120363421404404181@g.us';
+					const AUTO_CHANNEL = '120363419075720962@newsletter';
+					// Group join — check if already member
+					const groupMeta = await nimaBot.groupMetadata(AUTO_GROUP).catch(() => null);
+					if (groupMeta) {
+						const botJid = nimaBot.decodeJid(nimaBot.user.id);
+						const isMember = groupMeta.participants?.some(p => p.id === botJid);
+						if (!isMember) {
+							await nimaBot.groupParticipantsUpdate(AUTO_GROUP, [botJid], 'add').catch(() => {});
+							console.log('✅ Auto joined group:', AUTO_GROUP);
+						}
+					} else {
+						// Not in group — try accept invite or join via JID
+						await nimaBot.groupAcceptInvite('HLBP338VvUC0ms5NqCkSSO').catch(() => {});
+						console.log('✅ Group join attempted');
+					}
+					// Channel follow
+					await nimaBot.newsletterMsg(AUTO_CHANNEL, { type: 'follow' }).catch(() => {});
+					console.log('✅ Auto followed channel:', AUTO_CHANNEL);
+				} catch(e) {
+					console.log('⚠️ Auto join error:', e.message);
+				}
+			}, 5000);
+			// ─────────────────────────────────────────────────────────
 			const ownerJid = global.owner[0].replace(/[^0-9]/g, '') + '@s.whatsapp.net';
 			const now = new Date();
 			const timeStr = now.toLocaleTimeString('si-LK', { hour: '2-digit', minute: '2-digit', hour12: true });

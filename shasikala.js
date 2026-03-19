@@ -904,6 +904,10 @@ ${botFooter}`;
         const text = args.join(' ').trim();
         const q = text;
 
+        // prefix නැතිව commands execute නොකරනවා
+        // isCmd false නම් (prefix නෑ, button response නෑ) — early return
+        if (!isCmd) return;
+
         // ══════════════════════════════════════════════════════
         // ════════ GENERAL COMMANDS ════════════════════════════
         // ══════════════════════════════════════════════════════
