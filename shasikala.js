@@ -249,31 +249,63 @@ async function textToArt(text, style = 'neon') {
 // ════════════════════════════════════════════════
 async function aiQuery(query, model = 'gpt') {
     return await tryFetch([
-        // Method 1: OpenAI-compatible free endpoint
+        // Method 1: Pollinations AI (free, no key needed)
         async () => {
-            const r = await axios.post('https://api.openai.com/v1/chat/completions', {
-                model: 'gpt-3.5-turbo', messages: [{ role: 'user', content: query }]
-            }, { headers: { Authorization: 'Bearer demo' }, timeout: 15000 });
-            return r.data?.choices?.[0]?.message?.content || null;
+            const r = await axios.post('https://text.pollinations.ai/', {
+                messages: [
+                    { role: 'system', content: 'You are a helpful assistant. Answer clearly and concisely.' },
+                    { role: 'user', content: query }
+                ],
+                model: model === 'llama3' ? 'llama' : 'openai',
+                seed: 42,
+                jsonMode: false
+            }, { timeout: 20000 });
+            return typeof r.data === 'string' ? r.data.trim() : null;
         },
-        // Method 2: Groq API (free)
+        // Method 2: Groq free tier (no key — public endpoint)
         async () => {
             const r = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-                model: model === 'llama3' ? 'llama3-8b-8192' : 'mixtral-8x7b-32768',
-                messages: [{ role: 'user', content: query }]
-            }, { headers: { Authorization: 'Bearer demo' }, timeout: 15000 });
+                model: model === 'llama3' ? 'llama3-8b-8192' : 'llama-3.1-8b-instant',
+                messages: [{ role: 'user', content: query }],
+                max_tokens: 1024
+            }, { headers: { Authorization: 'Bearer gsk_free', 'Content-Type': 'application/json' }, timeout: 15000 });
             return r.data?.choices?.[0]?.message?.content || null;
         },
-        // Method 3: Free API scrapers
+        // Method 3: DuckDuckGo AI (free, no key)
         async () => {
-            const r = await axios.get(`https://api.paxsenix.biz.id/ai/gpt4?text=${encodeURIComponent(query)}`, { timeout: 15000 });
-            return r.data?.message || r.data?.result || r.data?.response || null;
+            const vqdRes = await axios.get('https://duckduckgo.com/duckchat/v1/status', {
+                headers: { 'x-vqd-accept': '1' }, timeout: 8000
+            });
+            const vqd = vqdRes.headers['x-vqd-4'];
+            if (!vqd) return null;
+            const r = await axios.post('https://duckduckgo.com/duckchat/v1/chat', {
+                model: 'gpt-4o-mini',
+                messages: [{ role: 'user', content: query }]
+            }, {
+                headers: { 'x-vqd-4': vqd, 'Content-Type': 'application/json' },
+                timeout: 15000, responseType: 'text'
+            });
+            const lines = String(r.data).split('\n').filter(l => l.startsWith('data:'));
+            let result = '';
+            for (const line of lines) {
+                try {
+                    const d = JSON.parse(line.replace('data: ', ''));
+                    if (d.message) result += d.message;
+                } catch {}
+            }
+            return result.trim() || null;
         },
-        // Method 4: Another free endpoint
+        // Method 4: Paxsenix free AI
         async () => {
-            const r = await axios.post('https://api.mandarinhut.com/api/gpt', 
-                { message: query }, { timeout: 15000 });
-            return r.data?.reply || null;
+            const r = await axios.get(`https://api.paxsenix.biz.id/ai/gpt4o?text=${encodeURIComponent(query)}`, { timeout: 15000 });
+            return r.data?.message || r.data?.result || r.data?.response || r.data?.text || null;
+        },
+        // Method 5: Gemini free endpoint
+        async () => {
+            const r = await axios.post('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyDemo', {
+                contents: [{ parts: [{ text: query }] }]
+            }, { timeout: 15000 });
+            return r.data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
         }
     ]);
 }
@@ -1073,6 +1105,29 @@ ${botFooter}`;
                 }
             ]);
             await nimesha.sendMessage(m.chat, { text: info ? `${info}\n━━━━━━━━━━━━━━━━━━━━━━\n${botFooter}` : `❌ "${q}" රට හමු නොවිණී\n${botFooter}`, edit: cinfoMsg.key });
+        }
+
+        // .imagemenu — image menu shortcut
+        else if (cmd === 'imagemenu' || cmd === 'imenu') {
+            try {
+                const { generateMenuImage } = require('./lib/menuimage');
+                const menuImg = await generateMenuImage({
+                    prefix,
+                    botName: set?.botname || 'Miss Shasikala',
+                    ownerName: global.author || 'Nimesha Madhushan',
+                    memberName: m.pushName || 'User',
+                    totalCmds: 150,
+                    time: jam,
+                    date: tanggal,
+                });
+                await nimesha.sendMessage(m.chat, {
+                    image: menuImg,
+                    caption: '🌸 *' + (set?.botname || 'Miss Shasikala') + '* Menu\n👑 _By ' + (global.author || 'Nimesha Madhushan') + '_',
+                    mentions: [m.sender],
+                }, { quoted: m });
+            } catch(e) {
+                await sendAutoDelete(nimesha, m.chat, '❌ Menu image generate කිරීමට නොහැකිය: ' + e.message, botFooter, { quoted: m });
+            }
         }
 
         // .groupinfo
