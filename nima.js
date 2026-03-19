@@ -323,7 +323,7 @@ module.exports = nimesha = async (nimesha, m, msg, store) => {
 				return m.reply('「 ❗ 」Command එකක් අතර තරිතරයේ තත්පර 5ක් රැකගන්න')
 			}
 			
-			if (command && set.didyoumean) {
+			if (command && set.didyoumean && isCmd) {
 				let _b = ''
 				let _s = 0
 				for (const c of cases) {
@@ -4150,6 +4150,28 @@ _ස්තූතියි!_ 🌸`).then(() => {
 			}
 			break
 			case 'allmenu': {
+				try {
+					const { generateMenuImage } = require('./lib/menuimage')
+					const menuImg = await generateMenuImage({
+						prefix,
+						botName: set?.botname || 'Miss Shasikala',
+						ownerName: global.author || 'Nimesha Madhushan',
+						memberName: m.pushName || 'User',
+						totalCmds: ((fs.readFileSync('./nima.js').toString()).match(/case '/g) || []).length,
+						time: jam,
+						date: tanggal,
+					})
+					await nimesha.sendMessage(m.chat, {
+						image: menuImg,
+						caption: \`🌸 *\${set?.botname || 'Miss Shasikala'}* Menu\n👑 _By \${global.author || 'Nimesha Madhushan'}_\`,
+						mentions: [m.sender],
+					}, { quoted: m })
+					break
+				} catch(menuErr) {
+					console.log('Menu image error, falling back to text:', menuErr.message)
+				}
+				// FALLBACK: original text menu below
+				{
 				let profile
 				try {
 					profile = await nimesha.profilePictureUrl(m.sender, 'image');
