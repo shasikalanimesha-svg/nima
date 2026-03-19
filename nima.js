@@ -4569,8 +4569,11 @@ _ස්තූතියි!_ 🌸`).then(() => {
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'github — Source code', id: prefix + 'github' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'groupinfo — Group info', id: prefix + 'groupinfo' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'staff — Admins list', id: prefix + 'staff' }) },
-						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'vv — View once', id: prefix + 'vv' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'vv — View once reveal', id: prefix + 'vv' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'jid — JID info', id: prefix + 'jid' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'joke — Random joke', id: prefix + 'joke' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'quote — Quote', id: prefix + 'quote' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'fact — Fun fact', id: prefix + 'fact' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🔙 Back to Menu', id: prefix + 'menu' }) }
 					],
 					mentions: [m.sender],
@@ -4584,6 +4587,7 @@ _ස්තූතියි!_ 🌸`).then(() => {
 					buttons: [
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'tagall — සියල්ලන් tag', id: prefix + 'tagall' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'hidetag — Hidden tag', id: prefix + 'hidetag' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'totag — Forward + tag', id: prefix + 'totag' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'add — Member add', id: prefix + 'add' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'kick — Member kick', id: prefix + 'kick' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'promote — Admin promote', id: prefix + 'promote' }) },
@@ -4592,8 +4596,12 @@ _ස්තූතියි!_ 🌸`).then(() => {
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'setname — Group name', id: prefix + 'setname' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'setdesc — Group desc', id: prefix + 'setdesc' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'linkgrup — Group link', id: prefix + 'linkgrup' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'revoke — New link', id: prefix + 'revoke' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'welcome — Welcome on/off', id: prefix + 'welcome' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'goodbye — Goodbye on/off', id: prefix + 'goodbye' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'setwelcome — Custom welcome', id: prefix + 'setwelcome' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'setleave — Custom goodbye', id: prefix + 'setleave' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'privacy — Privacy Manager', id: prefix + 'privacy' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🔙 Back to Menu', id: prefix + 'menu' }) }
 					],
 					mentions: [m.sender],
@@ -4612,6 +4620,7 @@ _ස්තූතියි!_ 🌸`).then(() => {
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'news — Latest news', id: prefix + 'news' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'lyrics — Song lyrics', id: prefix + 'lyrics' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'fact — Fun fact', id: prefix + 'fact' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'cinfo — Country info', id: prefix + 'cinfo' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🔙 Back to Menu', id: prefix + 'menu' }) }
 					],
 					mentions: [m.sender],
@@ -4638,7 +4647,7 @@ _ස්තූතියි!_ 🌸`).then(() => {
 			break
 			case 'quotesmenu': {
 				await nimesha.sendListMsg(m.chat, {
-					text: `🌸 *💬 FUN & QUOTES*\n━━━━━━━━━━━━━━━━━━━━━━\n_Command tap කරල run කරන්න 👇_`,
+					text: `🌸 *😂 FUN & QUOTES*\n━━━━━━━━━━━━━━━━━━━━━━\n_Command tap කරල run කරන්න 👇_`,
 					footer: '🌸 Miss Shasikala | By Nimesha Madhushan',
 					buttons: [
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'joke — Random joke', id: prefix + 'joke' }) },
@@ -4651,6 +4660,11 @@ _ස්තූතියි!_ 🌸`).then(() => {
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'hack — Fake hack', id: prefix + 'hack' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'flirt — Flirt line', id: prefix + 'flirt' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'shayari — Shayari', id: prefix + 'shayari' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'wasted — Wasted effect', id: prefix + 'wasted' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'jail — Jail effect', id: prefix + 'jail' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'triggered — Triggered effect', id: prefix + 'triggered' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'simp — Simp meter', id: prefix + 'simp' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'character — Character analysis', id: prefix + 'character' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🔙 Back to Menu', id: prefix + 'menu' }) }
 					],
 					mentions: [m.sender],
@@ -4723,6 +4737,7 @@ _ස්තූතියි!_ 🌸`).then(() => {
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'gemini — Gemini AI', id: prefix + 'gemini' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'llama3 — Llama3 AI', id: prefix + 'llama3' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'ai — AI assistant', id: prefix + 'ai' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'chatai — Chat AI', id: prefix + 'chatai' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'imagine — AI image gen', id: prefix + 'imagine' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'flux — Flux image', id: prefix + 'flux' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'sora — Sora image', id: prefix + 'sora' }) },
@@ -4770,7 +4785,27 @@ _ස්තූතියි!_ 🌸`).then(() => {
 ╰──────❍`, edit: _msg_animemenu.key });
 			}
 			break
-			case 'gamemenu': {
+			case 'stickersmenu': {
+				await nimesha.sendListMsg(m.chat, {
+					text: `🌸 *🎨 STICKER & IMAGE*\n━━━━━━━━━━━━━━━━━━━━━━\n_Command tap කරල run කරන්න 👇_`,
+					footer: '🌸 Miss Shasikala | By Nimesha Madhushan',
+					buttons: [
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'sticker — Make sticker', id: prefix + 'sticker' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 's — Quick sticker', id: prefix + 's' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'simage — Sticker to image', id: prefix + 'simage' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'attp — Animated text sticker', id: prefix + 'attp' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'removebg — Remove background', id: prefix + 'removebg' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'blur — Blur image', id: prefix + 'blur' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'ss — Screenshot URL', id: prefix + 'ss' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'tts — Text to speech', id: prefix + 'tts' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'trt — Translate', id: prefix + 'trt' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🔙 Back to Menu', id: prefix + 'menu' }) }
+					],
+					mentions: [m.sender],
+				}, { quoted: m })
+			}
+			break
+						case 'gamemenu': {
 				await nimesha.sendListMsg(m.chat, {
 					text: `🌸 *🎮 GAMES*\n━━━━━━━━━━━━━━━━━━━━━━\n_Command tap කරල run කරන්න 👇_`,
 					footer: '🌸 Miss Shasikala | By Nimesha Madhushan',

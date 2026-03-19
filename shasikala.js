@@ -1146,6 +1146,111 @@ ${botFooter}`;
             } catch (e) { await sendAutoDelete(nimesha, m.chat, `❌ Group info ගැනීමට නොහැකිය`, botFooter, { quoted: m }); }
         }
 
+        // .privacy — Privacy Manager
+        else if (cmd === 'privacy') {
+            if (!isTrusted) return await sendAutoDelete(nimesha, m.chat, '❌ Owner command පමණයි!', botFooter, { quoted: m });
+
+            const privacyMenu = `🤍⃝ *PRIVACY MANAGER*
+━━━━━━━━━━━━━━━━━━━━━━
+
+📊 *Reply number ලෙස select කරන්න:*
+
+🧩 *Last Seen:*
+*1* — Everyone
+*2* — My Contacts
+*3* — Nobody
+
+🧩 *Online Status:*
+*4* — Everyone
+*5* — Match Last Seen
+
+🧩 *Profile Picture:*
+*6* — Everyone
+*7* — My Contacts
+*8* — Nobody
+
+🧩 *Status Updates:*
+*9* — Everyone
+*10* — My Contacts
+*11* — Nobody
+
+🧩 *Read Receipts:*
+*12* — Enable
+*13* — Disable
+
+🧩 *Groups Add:*
+*14* — Everyone
+*15* — My Contacts
+*16* — Admins Only
+
+⏳ *Disappearing Messages:*
+*17* — Off
+*18* — 24 Hours
+*19* — 7 Days
+*20* — 90 Days
+
+🚫 *Privacy Tools:*
+*21* — Block List බැලීම
+
+━━━━━━━━━━━━━━━━━━━━━━`;
+
+            if (!q) {
+                return await sendAutoDelete(nimesha, m.chat, privacyMenu, botFooter, { quoted: m });
+            }
+
+            const choice = parseInt(q.trim());
+            if (isNaN(choice) || choice < 1 || choice > 21) {
+                return await sendAutoDelete(nimesha, m.chat, '⚠️ 1-21 අතර number එකක් reply කරන්න!', botFooter, { quoted: m });
+            }
+
+            try {
+                let resultMsg = '';
+                switch(choice) {
+                    // Last Seen
+                    case 1: await nimesha.updateLastSeenPrivacy('all'); resultMsg = '✅ Last Seen → Everyone'; break;
+                    case 2: await nimesha.updateLastSeenPrivacy('contacts'); resultMsg = '✅ Last Seen → My Contacts'; break;
+                    case 3: await nimesha.updateLastSeenPrivacy('none'); resultMsg = '✅ Last Seen → Nobody'; break;
+                    // Online Status
+                    case 4: await nimesha.updateOnlinePrivacy('all'); resultMsg = '✅ Online Status → Everyone'; break;
+                    case 5: await nimesha.updateOnlinePrivacy('match_last_seen'); resultMsg = '✅ Online Status → Match Last Seen'; break;
+                    // Profile Picture
+                    case 6: await nimesha.updateProfilePicturePrivacy('all'); resultMsg = '✅ Profile Picture → Everyone'; break;
+                    case 7: await nimesha.updateProfilePicturePrivacy('contacts'); resultMsg = '✅ Profile Picture → My Contacts'; break;
+                    case 8: await nimesha.updateProfilePicturePrivacy('none'); resultMsg = '✅ Profile Picture → Nobody'; break;
+                    // Status Updates
+                    case 9: await nimesha.updateStatusPrivacy('all'); resultMsg = '✅ Status → Everyone'; break;
+                    case 10: await nimesha.updateStatusPrivacy('contacts'); resultMsg = '✅ Status → My Contacts'; break;
+                    case 11: await nimesha.updateStatusPrivacy('none'); resultMsg = '✅ Status → Nobody'; break;
+                    // Read Receipts
+                    case 12: await nimesha.updateReadReceiptsPrivacy('all'); resultMsg = '✅ Read Receipts → Enabled'; break;
+                    case 13: await nimesha.updateReadReceiptsPrivacy('none'); resultMsg = '✅ Read Receipts → Disabled'; break;
+                    // Groups Add
+                    case 14: await nimesha.updateGroupsAddPrivacy('all'); resultMsg = '✅ Groups Add → Everyone'; break;
+                    case 15: await nimesha.updateGroupsAddPrivacy('contacts'); resultMsg = '✅ Groups Add → My Contacts'; break;
+                    case 16: await nimesha.updateGroupsAddPrivacy('contact_blacklist'); resultMsg = '✅ Groups Add → Admins Only'; break;
+                    // Disappearing Messages
+                    case 17: await nimesha.updateDefaultDisappearingMode(0); resultMsg = '✅ Disappearing → Off'; break;
+                    case 18: await nimesha.updateDefaultDisappearingMode(86400); resultMsg = '✅ Disappearing → 24 Hours'; break;
+                    case 19: await nimesha.updateDefaultDisappearingMode(604800); resultMsg = '✅ Disappearing → 7 Days'; break;
+                    case 20: await nimesha.updateDefaultDisappearingMode(7776000); resultMsg = '✅ Disappearing → 90 Days'; break;
+                    // Block List
+                    case 21: {
+                        const blocklist = await nimesha.fetchBlocklist();
+                        if (!blocklist || blocklist.length === 0) {
+                            resultMsg = '📋 *Block List*\n\nBlock කළ කිසිවෙකු නෑ.';
+                        } else {
+                            const list = blocklist.map((jid, i) => `${i+1}. +${jid.replace('@s.whatsapp.net','')}`).join('\n');
+                            resultMsg = `📋 *Block List (${blocklist.length})*\n\n${list}`;
+                        }
+                        break;
+                    }
+                }
+                await sendAutoDelete(nimesha, m.chat, `🔐 *Privacy Updated!*\n━━━━━━━━━━━━━━━━━━━━━━\n${resultMsg}`, botFooter, { quoted: m });
+            } catch(e) {
+                await sendAutoDelete(nimesha, m.chat, `❌ Error: ${e.message}\n\n_Bot ට ඒ permission නෑ විය හැකිය._`, botFooter, { quoted: m });
+            }
+        }
+
         // .welcome on/off / .setwelcome / .setleave
         else if (cmd === 'welcome') {
             if (!m.isGroup) return await sendAutoDelete(nimesha, m.chat, `❌ Group command පමණයි!`, botFooter, { quoted: m });
