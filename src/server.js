@@ -8,6 +8,67 @@ const packageInfo = require('../package.json');
 
 global.nimaInstance = null;
 
+// ── Menu Card Image Generator & Server ───────────────────────────────────────
+const path = require('path');
+const fs = require('fs');
+const MENU_CARDS_DIR = path.join(__dirname, '../database/menucards');
+if (!fs.existsSync(MENU_CARDS_DIR)) fs.mkdirSync(MENU_CARDS_DIR, { recursive: true });
+
+// Generate menu card images on startup
+async function generateMenuCards() {
+    try {
+        const sharp = require('sharp');
+        const CATS = [
+            { id:'bot',      title:'BOT',       color:'#cc0000', cmds:['alive • ping • speed','runtime • info • owner','vv • jid • github'] },
+            { id:'group',    title:'GROUP',     color:'#9900cc', cmds:['tagall • hidetag • add','kick • promote • demote','welcome • setname'] },
+            { id:'download', title:'DOWNLOAD',  color:'#0066cc', cmds:['song • mp3 • play','video • mp4 • ytmp3','ytmp4'] },
+            { id:'ai',       title:'AI',        color:'#00aa44', cmds:['gpt • gemini • llama3','imagine • flux • sora','chatai'] },
+            { id:'sticker',  title:'STICKER',   color:'#cc6600', cmds:['sticker • attp • simage','removebg • blur • ss','tts • trt'] },
+            { id:'fun',      title:'FUN',       color:'#cc0066', cmds:['joke • quote • fact','8ball • compliment','hack • ship • flirt'] },
+            { id:'games',    title:'GAMES',     color:'#006699', cmds:['tictactoe • suit • chess','akinator • slot • math','blackjack'] },
+            { id:'search',   title:'SEARCH',    color:'#449900', cmds:['google • ytsearch','define • weather • news','lyrics • fact'] },
+        ];
+        function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+        for (const cat of CATS) {
+            const W=400, H=280;
+            let svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '">';
+            svg += '<rect width="' + W + '" height="' + H + '" fill="#070707"/>';
+            for(let y=0; y<H; y+=3) svg += '<line x1="0" y1="' + y + '" x2="' + W + '" y2="' + y + '" stroke="#ff000006" stroke-width="1"/>';
+            svg += '<rect x="0" y="0" width="' + W + '" height="' + (H*0.45) + '" fill="' + cat.color + '" opacity="0.12"/>';
+            svg += '<rect x="0" y="0" width="' + W + '" height="5" fill="' + cat.color + '"/>';
+            const b=14,bs=18;
+            svg += '<line x1="' + b + '" y1="' + b + '" x2="' + (b+bs) + '" y2="' + b + '" stroke="' + cat.color + '" stroke-width="2"/>';
+            svg += '<line x1="' + b + '" y1="' + b + '" x2="' + b + '" y2="' + (b+bs) + '" stroke="' + cat.color + '" stroke-width="2"/>';
+            svg += '<line x1="' + (W-b) + '" y1="' + b + '" x2="' + (W-b-bs) + '" y2="' + b + '" stroke="' + cat.color + '" stroke-width="2"/>';
+            svg += '<line x1="' + (W-b) + '" y1="' + b + '" x2="' + (W-b) + '" y2="' + (b+bs) + '" stroke="' + cat.color + '" stroke-width="2"/>';
+            svg += '<text x="' + (W/2) + '" y="56" text-anchor="middle" font-family="Courier New,monospace" font-size="32" font-weight="700" fill="' + cat.color + '">' + esc(cat.title) + '</text>';
+            svg += '<line x1="30" y1="70" x2="' + (W-30) + '" y2="70" stroke="' + cat.color + '" stroke-width="1" opacity="0.5"/>';
+            cat.cmds.forEach(function(line, i) {
+                svg += '<text x="' + (W/2) + '" y="' + (100 + i*38) + '" text-anchor="middle" font-family="Courier New,monospace" font-size="15" fill="#ffaaaa">' + esc(line) + '</text>';
+            });
+            svg += '<rect x="0" y="' + (H-4) + '" width="' + W + '" height="4" fill="' + cat.color + '"/>';
+            svg += '</svg>';
+            const buf = await sharp(Buffer.from(svg)).jpeg({quality: 92}).toBuffer();
+            fs.writeFileSync(path.join(MENU_CARDS_DIR, cat.id + '.jpg'), buf);
+        }
+        console.log('✅ Menu card images generated!');
+    } catch(e) {
+        console.log('⚠️ Menu card generation skipped:', e.message);
+    }
+}
+generateMenuCards();
+
+// Serve menu card images
+app.get('/menucard/:id', (req, res) => {
+    const imgPath = path.join(MENU_CARDS_DIR, req.params.id + '.jpg');
+    if (fs.existsSync(imgPath)) {
+        res.setHeader('Content-Type', 'image/jpeg');
+        res.sendFile(imgPath);
+    } else {
+        res.status(404).send('Not found');
+    }
+});
+
 // ── Web Dashboard ──────────────────────────────────────────────────────────────
 app.get('/dashboard', (req, res) => {
 	res.send(`<!DOCTYPE html>
