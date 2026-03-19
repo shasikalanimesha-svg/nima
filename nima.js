@@ -4149,54 +4149,56 @@ _ස්තූතියි!_ 🌸`).then(() => {
 				} else {
 					// Carousel menu — FB friend list style, swipe කරල tap කරල sub-menu
 					const _baseUrl = process.env.RAILWAY_PUBLIC_DOMAIN ? 'https://' + process.env.RAILWAY_PUBLIC_DOMAIN : ('https://sincere-manifestation-production.up.railway.app')
+					// .menu දාද්දී හැමවිටම colors shuffle කරලා cards regenerate කරනවා
+					if (global.generateMenuCards) await global.generateMenuCards().catch(e => {})
 					const carouselCards = [
 						{
 							url: _baseUrl + '/menucard/bot',
-							body: '🤖 *BOT Commands*\n\nalive • bot • ping\nspeed • runtime • info\nowner • github • vv',
-							footer: 'Tap to open BOT menu',
-							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🤖 Open BOT Menu', id: prefix + 'botmenu' }) }]
+							body: '🤖 *බොට් විධාන | BOT*\n━━━━━━━━━━━━━━━━━\n▸ .alive\n▸ .bot\n▸ .ping\n▸ .speed\n▸ .runtime\n▸ .info\n▸ .owner\n▸ .vv',
+							footer: '👆 Tap — BOT menu open වෙනවා',
+							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🤖 BOT Menu විවෘත කරන්න', id: prefix + 'botmenu' }) }]
 						},
 						{
 							url: _baseUrl + '/menucard/group',
-							body: '👥 *GROUP Commands*\n\ntagall • hidetag • add\nkick • promote • demote\nwelcome • setname',
-							footer: 'Tap to open GROUP menu',
-							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '👥 Open GROUP Menu', id: prefix + 'groupmenu' }) }]
+							body: '👥 *සමූහ විධාන | GROUP*\n━━━━━━━━━━━━━━━━━\n▸ .tagall\n▸ .hidetag\n▸ .add\n▸ .kick\n▸ .promote\n▸ .demote\n▸ .welcome\n▸ .setname',
+							footer: '👆 Tap — GROUP menu open වෙනවා',
+							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '👥 GROUP Menu විවෘත කරන්න', id: prefix + 'groupmenu' }) }]
 						},
 						{
 							url: _baseUrl + '/menucard/download',
-							body: '⬇️ *DOWNLOAD*\n\nsong • mp3 • play\nvideo • mp4 • ytmp3\nytmp4',
-							footer: 'Tap to open DOWNLOAD menu',
-							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '⬇️ Open DOWNLOAD Menu', id: prefix + 'downloadmenu' }) }]
+							body: '⬇️ *බාගැනීම | DOWNLOAD*\n━━━━━━━━━━━━━━━━━\n▸ .song\n▸ .mp3\n▸ .play\n▸ .ytmp3\n▸ .video\n▸ .mp4\n▸ .ytmp4',
+							footer: '👆 Tap — DOWNLOAD menu open වෙනවා',
+							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '⬇️ DOWNLOAD Menu විවෘත කරන්න', id: prefix + 'downloadmenu' }) }]
 						},
 						{
 							url: _baseUrl + '/menucard/ai',
-							body: '🤖 *AI Commands*\n\ngpt • gemini • llama3\nimagine • flux • sora\nchatai',
-							footer: 'Tap to open AI menu',
-							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🤖 Open AI Menu', id: prefix + 'aimenu' }) }]
+							body: '🤖 *AI කෘතිම බුද්ධිය*\n━━━━━━━━━━━━━━━━━\n▸ .gpt\n▸ .gemini\n▸ .llama3\n▸ .ai\n▸ .chatai\n▸ .imagine\n▸ .flux\n▸ .sora',
+							footer: '👆 Tap — AI menu open වෙනවා',
+							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🤖 AI Menu විවෘත කරන්න', id: prefix + 'aimenu' }) }]
 						},
 						{
 							url: _baseUrl + '/menucard/sticker',
-							body: '🎨 *STICKER & IMAGE*\n\nsticker • attp • simage\nremovebg • blur • ss\ntts • trt',
-							footer: 'Tap to open STICKER menu',
-							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🎨 Open STICKER Menu', id: prefix + 'stickersmenu' }) }]
+							body: '🎨 *ස්ටිකර් සහ රූප | STICKER*\n━━━━━━━━━━━━━━━━━\n▸ .sticker\n▸ .attp\n▸ .simage\n▸ .removebg\n▸ .blur\n▸ .ss\n▸ .tts\n▸ .trt',
+							footer: '👆 Tap — STICKER menu open වෙනවා',
+							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🎨 STICKER Menu විවෘත කරන්න', id: prefix + 'stickersmenu' }) }]
 						},
 						{
 							url: _baseUrl + '/menucard/fun',
-							body: '💬 *FUN & QUOTES*\n\njoke • quote • fact\n8ball • compliment • hack\nship • flirt • shayari',
-							footer: 'Tap to open FUN menu',
-							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '💬 Open FUN Menu', id: prefix + 'quotesmenu' }) }]
+							body: '😂 *විනෝදය | FUN*\n━━━━━━━━━━━━━━━━━\n▸ .joke\n▸ .quote\n▸ .fact\n▸ .8ball\n▸ .compliment\n▸ .hack\n▸ .ship\n▸ .flirt',
+							footer: '👆 Tap — FUN menu open වෙනවා',
+							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '😂 FUN Menu විවෘත කරන්න', id: prefix + 'quotesmenu' }) }]
 						},
 						{
 							url: _baseUrl + '/menucard/games',
-							body: '🎮 *GAMES*\n\ntictactoe • suit • chess\nakinator • slot • math\nblackjack',
-							footer: 'Tap to open GAMES menu',
-							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🎮 Open GAMES Menu', id: prefix + 'gamemenu' }) }]
+							body: '🎮 *ක්‍රීඩා | GAMES*\n━━━━━━━━━━━━━━━━━\n▸ .tictactoe\n▸ .suit\n▸ .chess\n▸ .akinator\n▸ .slot\n▸ .math\n▸ .blackjack',
+							footer: '👆 Tap — GAMES menu open වෙනවා',
+							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🎮 GAMES Menu විවෘත කරන්න', id: prefix + 'gamemenu' }) }]
 						},
 						{
 							url: _baseUrl + '/menucard/search',
-							body: '🔍 *SEARCH*\n\ngoogle • ytsearch • define\nweather • news • lyrics\nfact',
-							footer: 'Tap to open SEARCH menu',
-							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🔍 Open SEARCH Menu', id: prefix + 'searchmenu' }) }]
+							body: '🔍 *සෙවුම | SEARCH*\n━━━━━━━━━━━━━━━━━\n▸ .google\n▸ .ytsearch\n▸ .define\n▸ .weather\n▸ .news\n▸ .lyrics\n▸ .fact',
+							footer: '👆 Tap — SEARCH menu open වෙනවා',
+							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🔍 SEARCH Menu විවෘත කරන්න', id: prefix + 'searchmenu' }) }]
 						},
 					]
 					await nimesha.sendCarouselMsg(
