@@ -4146,7 +4146,66 @@ _ස්තූතියි!_ 🌸`).then(() => {
 						set.template = parseInt(Number(args[1]))
 						m.reply('සාර්ථකයි Mengubah Template Menu')
 					} else m.reply(`Template තෝරන්න:\n- 1 (Button Menu)\n- 2 (List Menu)\n- 3 (Document Menu)`)
-				} else await templateMenu(nimesha, set.template, m, prefix, setv, db, { botNumber, author, packname, isVip, isPremium, my })
+				} else {
+					// Carousel menu — FB friend list style, swipe කරල tap කරල sub-menu
+					const _baseUrl = process.env.RAILWAY_PUBLIC_DOMAIN ? 'https://' + process.env.RAILWAY_PUBLIC_DOMAIN : ('https://sincere-manifestation-production.up.railway.app')
+					const carouselCards = [
+						{
+							url: _baseUrl + '/menucard/bot',
+							body: '🤖 *BOT Commands*\n\nalive • bot • ping\nspeed • runtime • info\nowner • github • vv',
+							footer: 'Tap to open BOT menu',
+							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🤖 Open BOT Menu', id: prefix + 'botmenu' }) }]
+						},
+						{
+							url: _baseUrl + '/menucard/group',
+							body: '👥 *GROUP Commands*\n\ntagall • hidetag • add\nkick • promote • demote\nwelcome • setname',
+							footer: 'Tap to open GROUP menu',
+							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '👥 Open GROUP Menu', id: prefix + 'groupmenu' }) }]
+						},
+						{
+							url: _baseUrl + '/menucard/download',
+							body: '⬇️ *DOWNLOAD*\n\nsong • mp3 • play\nvideo • mp4 • ytmp3\nytmp4',
+							footer: 'Tap to open DOWNLOAD menu',
+							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '⬇️ Open DOWNLOAD Menu', id: prefix + 'downloadmenu' }) }]
+						},
+						{
+							url: _baseUrl + '/menucard/ai',
+							body: '🤖 *AI Commands*\n\ngpt • gemini • llama3\nimagine • flux • sora\nchatai',
+							footer: 'Tap to open AI menu',
+							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🤖 Open AI Menu', id: prefix + 'aimenu' }) }]
+						},
+						{
+							url: _baseUrl + '/menucard/sticker',
+							body: '🎨 *STICKER & IMAGE*\n\nsticker • attp • simage\nremovebg • blur • ss\ntts • trt',
+							footer: 'Tap to open STICKER menu',
+							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🎨 Open STICKER Menu', id: prefix + 'stickersmenu' }) }]
+						},
+						{
+							url: _baseUrl + '/menucard/fun',
+							body: '💬 *FUN & QUOTES*\n\njoke • quote • fact\n8ball • compliment • hack\nship • flirt • shayari',
+							footer: 'Tap to open FUN menu',
+							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '💬 Open FUN Menu', id: prefix + 'quotesmenu' }) }]
+						},
+						{
+							url: _baseUrl + '/menucard/games',
+							body: '🎮 *GAMES*\n\ntictactoe • suit • chess\nakinator • slot • math\nblackjack',
+							footer: 'Tap to open GAMES menu',
+							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🎮 Open GAMES Menu', id: prefix + 'gamemenu' }) }]
+						},
+						{
+							url: _baseUrl + '/menucard/search',
+							body: '🔍 *SEARCH*\n\ngoogle • ytsearch • define\nweather • news • lyrics\nfact',
+							footer: 'Tap to open SEARCH menu',
+							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🔍 Open SEARCH Menu', id: prefix + 'searchmenu' }) }]
+						},
+					]
+					await nimesha.sendCarouselMsg(
+						m.chat,
+						`🌸 *MISS SHASIKALA BOT*\n\n👤 *User:* ${m.pushName || 'User'}\n🔧 *Prefix:* ${prefix}\n📅 ${tanggal}  🕐 ${jam}\n\n_Swipe කරල Category tap කරන්න_ 👉`,
+						'🌸 Miss Shasikala | By Nimesha Madhushan',
+						carouselCards
+					)
+				}
 			}
 			break
 			case 'allmenu': {
@@ -4494,141 +4553,106 @@ _ස්තූතියි!_ 🌸`).then(() => {
 			}
 			break
 			case 'botmenu': {
-				const _msg_botmenu = await m.reply('⏳ *සකසමින්...*');
-				await nimesha.sendMessage(m.chat, { text: `
-╭──❍「 *බොට් (BOT)* 」❍
-│${setv} ${prefix}profile (ගිණුම් විස්තර)
-│${setv} ${prefix}claim (දිනපතා ත්‍යාග)
-│${setv} ${prefix}buy [භාණ්ඩය] (ප්‍රමාණය)
-│${setv} ${prefix}transfer (මුදල් යැවීම)
-│${setv} ${prefix}leaderboard (ප්‍රමුඛ පුවරුව)
-│${setv} ${prefix}request (ඉල්ලීම් පණිවිඩ)
-│${setv} ${prefix}react (ප්‍රතිචාර ඉමෝජි)
-│${setv} ${prefix}tagme (මාව ටැග් කරන්න)
-│${setv} ${prefix}runtime (ක්‍රියාත්මක වන කාලය)
-│${setv} ${prefix}totalfitur (මුළු විශේෂාංග)
-│${setv} ${prefix}speed (වේගය පරීක්ෂාව)
-│${setv} ${prefix}ping (ප්‍රතිචාර කාලය)
-│${setv} ${prefix}afk (බැහැරව සිටින බව දැන්වීම)
-│${setv} ${prefix}rvo (වරක් පමණක් බැලිය හැකි පණිවිඩ බැලීම)
-│${setv} ${prefix}inspect (සමූහයක විස්තර බැලීම)
-│${setv} ${prefix}addmsg (පණිවිඩ එකතු කිරීම)
-│${setv} ${prefix}delmsg (පණිවිඩ මැකීම)
-│${setv} ${prefix}getmsg (පණිවිඩ ලබා ගැනීම)
-│${setv} ${prefix}listmsg (පණිවිඩ ලැයිස්තුව)
-│${setv} ${prefix}setcmd (විධාන සැකසීම)
-│${setv} ${prefix}delcmd (විධාන මැකීම)
-│${setv} ${prefix}listcmd (විධාන ලැයිස්තුව)
-│${setv} ${prefix}lockcmd (විධාන අගුළු දැමීම)
-│${setv} ${prefix}q (පණිවිඩයකට පිළිතුරු දීම)
-│${setv} ${prefix}menfes (රහසිගත පණිවිඩ)
-│${setv} ${prefix}confes (පාපොච්චාරණය)
-│${setv} ${prefix}roomai (AI කාමරය)
-│${setv} ${prefix}jadibot (තවත් බොට් කෙනෙකු වීම) 🔸️
-│${setv} ${prefix}stopjadibot (නැවැත්වීම)
-│${setv} ${prefix}listjadibot (ලැයිස්තුව බැලීම)
-│${setv} ${prefix}donasi (ආධාර කිරීම)
-│${setv} ${prefix}addsewa (කුලී කාලය එකතු කිරීම)
-│${setv} ${prefix}delsewa (කුලී කාලය ඉවත් කිරීම)
-│${setv} ${prefix}listsewa (කුලී ලැයිස්තුව)
-╰──────❍`, edit: _msg_botmenu.key });
+				await nimesha.sendListMsg(m.chat, {
+					text: `🌸 *🤖 BOT Commands*\n━━━━━━━━━━━━━━━━━━━━━━\n_Command tap කරල run කරන්න 👇_`,
+					footer: '🌸 Miss Shasikala | By Nimesha Madhushan',
+					buttons: [
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'alive — Bot alive check', id: prefix + 'alive' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'bot — Bot status', id: prefix + 'bot' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'ping — Response time', id: prefix + 'ping' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'speed — Speed test', id: prefix + 'speed' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'runtime — Uptime', id: prefix + 'runtime' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'info — Bot info', id: prefix + 'info' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'owner — Owner info', id: prefix + 'owner' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'github — Source code', id: prefix + 'github' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'groupinfo — Group info', id: prefix + 'groupinfo' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'staff — Admins list', id: prefix + 'staff' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'vv — View once', id: prefix + 'vv' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'jid — JID info', id: prefix + 'jid' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🔙 Back to Menu', id: prefix + 'menu' }) }
+					],
+					mentions: [m.sender],
+				}, { quoted: m })
 			}
 			break
 			case 'groupmenu': {
-				const _msg_groupmenu = await m.reply('⏳ *සකසමින්...*');
-				await nimesha.sendMessage(m.chat, { text: `
-╭──❍「 *සමූහ (GROUP)* 」❍
-│${setv} ${prefix}add (සාමාජිකයින් එක් කිරීම)
-│${setv} ${prefix}kick (සාමාජිකයින් ඉවත් කිරීම)
-│${setv} ${prefix}promote (පාලක තනතුරු දීම)
-│${setv} ${prefix}demote (පාලක තනතුරු ඉවත් කිරීම)
-│${setv} ${prefix}warn (අවවාද කිරීම)
-│${setv} ${prefix}unwarn (අවවාද ඉවත් කිරීම)
-│${setv} ${prefix}setname (සමූහයේ නම වෙනස් කිරීම)
-│${setv} ${prefix}setdesc (විස්තරය වෙනස් කිරීම)
-│${setv} ${prefix}setppgc (සමූහ ඡායාරූපය සැකසීම)
-│${setv} ${prefix}delete (පණිවිඩ මැකීම)
-│${setv} ${prefix}linkgrup (සමූහ සබැඳිය)
-│${setv} ${prefix}revoke (සබැඳිය අලුත් කිරීම)
-│${setv} ${prefix}tagall (සියල්ලන් ටැග් කිරීම)
-│${setv} ${prefix}pin (පණිවිඩය රඳවා තැබීම)
-│${setv} ${prefix}unpin (රඳවා තැබීම ඉවත් කිරීම)
-│${setv} ${prefix}hidetag (නොපෙනෙන සේ ටැග් කිරීම)
-│${setv} ${prefix}totag (පණිවිඩයක් ටැග් කිරීම)
-│${setv} ${prefix}listonline (සක්‍රීය අය බැලීම)
-│${setv} ${prefix}group set (සමූහ සැකසුම්)
-│${setv} ${prefix}group (පාලකයන්ට පමණි)
-│
-│${setv} *🌸 Welcome / Leave සැකසීම*
-│${setv} ${prefix}group welcome on (Welcome message ක්‍රියාත්මක)
-│${setv} ${prefix}group welcome off (Welcome message අක්‍රිය)
-│${setv} ${prefix}setwelcome [පෙළ] (Custom welcome text)
-│${setv} ${prefix}goodbye on (Goodbye message ක්‍රියාත්මක)
-│${setv} ${prefix}goodbye off (Goodbye message අක්‍රිය)
-│${setv} ${prefix}setleave [පෙළ] (Custom goodbye text)
-╰──────❍`, edit: _msg_groupmenu.key });
+				await nimesha.sendListMsg(m.chat, {
+					text: `🌸 *👥 GROUP Commands*\n━━━━━━━━━━━━━━━━━━━━━━\n_Command tap කරල run කරන්න 👇_`,
+					footer: '🌸 Miss Shasikala | By Nimesha Madhushan',
+					buttons: [
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'tagall — සියල්ලන් tag', id: prefix + 'tagall' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'hidetag — Hidden tag', id: prefix + 'hidetag' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'add — Member add', id: prefix + 'add' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'kick — Member kick', id: prefix + 'kick' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'promote — Admin promote', id: prefix + 'promote' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'demote — Admin demote', id: prefix + 'demote' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'warn — Warn member', id: prefix + 'warn' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'setname — Group name', id: prefix + 'setname' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'setdesc — Group desc', id: prefix + 'setdesc' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'linkgrup — Group link', id: prefix + 'linkgrup' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'welcome — Welcome on/off', id: prefix + 'welcome' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'goodbye — Goodbye on/off', id: prefix + 'goodbye' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🔙 Back to Menu', id: prefix + 'menu' }) }
+					],
+					mentions: [m.sender],
+				}, { quoted: m })
 			}
 			break
 			case 'searchmenu': {
-				const _msg_searchmenu = await m.reply('⏳ *සකසමින්...*');
-				await nimesha.sendMessage(m.chat, { text: `
-╭──❍「 *සෙවුම් (SEARCH)* 」❍
-│${setv} ${prefix}ytsearch (YouTube සෙවීම්)
-│${setv} ${prefix}spotify (සංගීත සෙවීම්)
-│${setv} ${prefix}pixiv (Pixiv චිත්‍ර සෙවීම්)
-│${setv} ${prefix}pinterest (Pinterest පින්තූර සෙවීම්)
-│${setv} ${prefix}wallpaper (පසුතල පින්තූර)
-│${setv} ${prefix}ringtone (රිංග්ටෝන් සෙවීම්)
-│${setv} ${prefix}google (Google සෙවීම්)
-│${setv} ${prefix}gimage (Google පින්තූර)
-│${setv} ${prefix}npm (NPM පැකේජ සෙවීම්)
-│${setv} ${prefix}style (අකුරු හැඩතල)
-│${setv} ${prefix}cuaca (කාලගුණය - නගරය)
-│${setv} ${prefix}tenor (Tenor GIF සෙවීම්)
-│${setv} ${prefix}urban (Urban Dictionary අර්ථ)
-│${setv} ${prefix}weather (කාලගුණය - නගරය)
-│${setv} ${prefix}news (අලුත්ම ප්‍රවෘත්ති)
-│${setv} ${prefix}lyrics (ගීත පද)
-│${setv} ${prefix}define (වචන අර්ථය)
-│${setv} ${prefix}cinfo (රට ගැන තොරතුරු)
-│${setv} ${prefix}ss (වෙබ් Screenshots)
-│${setv} ${prefix}screenshot (වෙබ් Screenshots)
-╰──────❍`, edit: _msg_searchmenu.key });
+				await nimesha.sendListMsg(m.chat, {
+					text: `🌸 *🔍 SEARCH Commands*\n━━━━━━━━━━━━━━━━━━━━━━\n_Command tap කරල run කරන්න 👇_`,
+					footer: '🌸 Miss Shasikala | By Nimesha Madhushan',
+					buttons: [
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'ytsearch — YouTube search', id: prefix + 'ytsearch' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'google — Google search', id: prefix + 'google' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'define — Dictionary', id: prefix + 'define' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'weather — Weather info', id: prefix + 'weather' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'news — Latest news', id: prefix + 'news' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'lyrics — Song lyrics', id: prefix + 'lyrics' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'fact — Fun fact', id: prefix + 'fact' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🔙 Back to Menu', id: prefix + 'menu' }) }
+					],
+					mentions: [m.sender],
+				}, { quoted: m })
 			}
 			break
 			case 'downloadmenu': {
-				const _msg_downloadmenu = await m.reply('⏳ *සකසමින්...*');
-				await nimesha.sendMessage(m.chat, { text: `
-╭──❍「 *බාගත කිරීම් (DOWNLOAD)* 」❍
-│${setv} ${prefix}mp3 (ගීතයේ නම / YouTube URL)
-│${setv} ${prefix}song (ගීතයේ නම / YouTube URL)
-│${setv} ${prefix}play (ගීතයේ නම / YouTube URL)
-│${setv} ${prefix}ytmp3 (ගීතයේ නම / YouTube URL)
-│${setv} ${prefix}ytmp4 (වීඩියෝ නම / YouTube URL)
-│${setv} ${prefix}video (වීඩියෝ නම / YouTube URL)
-│${setv} ${prefix}mp4 (වීඩියෝ නම / YouTube URL)
-│${setv} ${prefix}instagram (Instagram වීඩියෝ)
-│${setv} ${prefix}tiktok (TikTok වීඩියෝ)
-│${setv} ${prefix}tiktokmp3 (TikTok ශබ්ද)
-│${setv} ${prefix}facebook (Facebook වීඩියෝ)
-│${setv} ${prefix}spotifydl (Spotify ගීත)
-│${setv} ${prefix}mediafire (Mediafire ගොනු)
-│${setv} ${prefix}apk (Android APK බාගත කිරීම)
-╰──────❍`, edit: _msg_downloadmenu.key });
+				await nimesha.sendListMsg(m.chat, {
+					text: `🌸 *⬇️ DOWNLOAD Commands*\n━━━━━━━━━━━━━━━━━━━━━━\n_Command tap කරල run කරන්න 👇_`,
+					footer: '🌸 Miss Shasikala | By Nimesha Madhushan',
+					buttons: [
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'song — YouTube audio', id: prefix + 'song' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'mp3 — MP3 download', id: prefix + 'mp3' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'play — Play music', id: prefix + 'play' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'ytmp3 — YT to MP3', id: prefix + 'ytmp3' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'video — YouTube video', id: prefix + 'video' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'mp4 — MP4 download', id: prefix + 'mp4' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'ytmp4 — YT to MP4', id: prefix + 'ytmp4' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🔙 Back to Menu', id: prefix + 'menu' }) }
+					],
+					mentions: [m.sender],
+				}, { quoted: m })
 			}
 			break
 			case 'quotesmenu': {
-				const _msg_quotesmenu = await m.reply('⏳ *සකසමින්...*');
-				await nimesha.sendMessage(m.chat, { text: `
-╭──❍「 *උපුටා දැක්වීම් (QUOTES)* 」❍
-│${setv} ${prefix}motivasi (අභිප්‍රේරණය)
-│${setv} ${prefix}quotes (උපුටා දැක්වීම්)
-│${setv} ${prefix}truth (සත්‍යය පැවසීම)
-│${setv} ${prefix}bijak (නැණවත් කියමන්)
-│${setv} ${prefix}dare (අභියෝග)
-│${setv} ${prefix}bucin (ආදරණීය කියමන්)
-│${setv} ${prefix}renungan (සිතන්නට යමක්)
-╰──────❍`, edit: _msg_quotesmenu.key });
+				await nimesha.sendListMsg(m.chat, {
+					text: `🌸 *💬 FUN & QUOTES*\n━━━━━━━━━━━━━━━━━━━━━━\n_Command tap කරල run කරන්න 👇_`,
+					footer: '🌸 Miss Shasikala | By Nimesha Madhushan',
+					buttons: [
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'joke — Random joke', id: prefix + 'joke' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'quote — Quote', id: prefix + 'quote' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'fact — Fun fact', id: prefix + 'fact' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '8ball — Magic 8ball', id: prefix + '8ball' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'compliment — Compliment', id: prefix + 'compliment' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'insult — Insult', id: prefix + 'insult' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'ship — Ship meter', id: prefix + 'ship' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'hack — Fake hack', id: prefix + 'hack' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'flirt — Flirt line', id: prefix + 'flirt' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'shayari — Shayari', id: prefix + 'shayari' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🔙 Back to Menu', id: prefix + 'menu' }) }
+					],
+					mentions: [m.sender],
+				}, { quoted: m })
 			}
 			break
 			case 'toolsmenu': {
@@ -4689,27 +4713,21 @@ _ස්තූතියි!_ 🌸`).then(() => {
 			}
 			break
 			case 'aimenu': {
-				const _msg_aimenu = await m.reply('⏳ *සකසමින්...*');
-				await nimesha.sendMessage(m.chat, { text: `
-╭──❍「 *කෘතිම බුද්ධිය (AI)* 」❍
-│${setv} ${prefix}ai (ප්‍රශ්න ඇසීම)
-│${setv} ${prefix}gemini (ගෙමිනි AI)
-│${setv} ${prefix}txt2img (අකුරුවලින් පින්තූර සෑදීම)
-│${setv} ${prefix}roomai (AI chat room)
-│${setv} ${prefix}delroomai (AI room නවත්වන්න)
-├──── *Gemini Auto Reply* ────
-│${setv} ${prefix}aion (Private AI on - owner)
-│${setv} ${prefix}aioff (Private AI off - owner)
-│${setv} ${prefix}groupai on (Group AI on - admin)
-│${setv} ${prefix}groupai off (Group AI off - admin)
-│${setv} ${prefix}clearai (AI history මකන්න)
-├──── *නව AI Commands* ────
-│${setv} ${prefix}gpt (ChatGPT - ප්‍රශ්න ඇසීම)
-│${setv} ${prefix}llama3 (LLaMA3 AI - ප්‍රශ්න ඇසීම)
-│${setv} ${prefix}imagine (AI රූප සෑදීම)
-│${setv} ${prefix}flux (AI Flux රූප සෑදීම)
-│${setv} ${prefix}sora (AI Sora රූප සෑදීම)
-╰──────❍`, edit: _msg_aimenu.key });
+				await nimesha.sendListMsg(m.chat, {
+					text: `🌸 *🤖 AI Commands*\n━━━━━━━━━━━━━━━━━━━━━━\n_Command tap කරල run කරන්න 👇_`,
+					footer: '🌸 Miss Shasikala | By Nimesha Madhushan',
+					buttons: [
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'gpt — GPT AI chat', id: prefix + 'gpt' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'gemini — Gemini AI', id: prefix + 'gemini' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'llama3 — Llama3 AI', id: prefix + 'llama3' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'ai — AI assistant', id: prefix + 'ai' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'imagine — AI image gen', id: prefix + 'imagine' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'flux — Flux image', id: prefix + 'flux' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'sora — Sora image', id: prefix + 'sora' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🔙 Back to Menu', id: prefix + 'menu' }) }
+					],
+					mentions: [m.sender],
+				}, { quoted: m })
 			}
 			break
 			case 'randommenu': {
@@ -4751,34 +4769,21 @@ _ස්තූතියි!_ 🌸`).then(() => {
 			}
 			break
 			case 'gamemenu': {
-				const _msg_gamemenu = await m.reply('⏳ *සකසමින්...*');
-				await nimesha.sendMessage(m.chat, { text: `
-╭──❍「 *ක්‍රීඩා (GAME)* 」❍
-│${setv} ${prefix}tictactoe (තිතයි කතුරයි)
-│${setv} ${prefix}akinator (සිතුවිලි කියවීම)
-│${setv} ${prefix}suit (ගල, කතුර, කොළය)
-│${setv} ${prefix}slot (ස්ලොට් මැෂින්)
-│${setv} ${prefix}math (ගණිත ගැටලු)
-│${setv} ${prefix}begal (කොල්ලකෑම)
-│${setv} ${prefix}ulartangga (ලුඩෝ/පහේ ක්‍රීඩාව)
-│${setv} ${prefix}blackjack (කාඩ් ක්‍රීඩාව)
-│${setv} ${prefix}catur (චෙස්)
-│${setv} ${prefix}casino (කැසිනෝ)
-│${setv} ${prefix}samgong (කාඩ් ක්‍රීඩාව)
-│${setv} ${prefix}rampok (සොරකම් කිරීම)
-│${setv} ${prefix}tekateki (ප්‍රහේලිකා)
-│${setv} ${prefix}tebaklirik (ගීත පද අනුමානය)
-│${setv} ${prefix}tebakkata (වචන අනුමානය)
-│${setv} ${prefix}tebakbom (බෝම්බ අනුමානය)
-│${setv} ${prefix}susunkata (වචන පෙළගැස්ම)
-│${setv} ${prefix}colorblind (වර්ණ පරීක්ෂාව)
-│${setv} ${prefix}tebakkimia (රසායන විද්‍යා අනුමානය)
-│${setv} ${prefix}caklontong (විහිළු ප්‍රහේලිකා)
-│${setv} ${prefix}tebakangka (අංක අනුමානය)
-│${setv} ${prefix}tebaknegara (රටවල් අනුමානය)
-│${setv} ${prefix}tebakgambar (රූප අනුමානය)
-│${setv} ${prefix}tebakbendera (කොඩි අනුමානය)
-╰──────❍`, edit: _msg_gamemenu.key });
+				await nimesha.sendListMsg(m.chat, {
+					text: `🌸 *🎮 GAMES*\n━━━━━━━━━━━━━━━━━━━━━━\n_Command tap කරල run කරන්න 👇_`,
+					footer: '🌸 Miss Shasikala | By Nimesha Madhushan',
+					buttons: [
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'tictactoe — Tic Tac Toe', id: prefix + 'tictactoe' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'suit — Rock Paper Scissors', id: prefix + 'suit' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'akinator — Akinator', id: prefix + 'akinator' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'slot — Slot machine', id: prefix + 'slot' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'math — Math quiz', id: prefix + 'math' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'blackjack — Blackjack', id: prefix + 'blackjack' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'chess — Chess', id: prefix + 'chess' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🔙 Back to Menu', id: prefix + 'menu' }) }
+					],
+					mentions: [m.sender],
+				}, { quoted: m })
 			}
 			break
 			case 'funmenu': {
