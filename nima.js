@@ -4163,15 +4163,13 @@ _ස්තූතියි!_ 🌸`).then(() => {
 					})
 					await nimesha.sendMessage(m.chat, {
 						image: menuImg,
-						caption: \`🌸 *\${set?.botname || 'Miss Shasikala'}* Menu\n👑 _By \${global.author || 'Nimesha Madhushan'}_\`,
+						caption: '🌸 *' + (set?.botname || 'Miss Shasikala') + '* Menu\n👑 _By ' + (global.author || 'Nimesha Madhushan') + '_',
 						mentions: [m.sender],
 					}, { quoted: m })
 					break
 				} catch(menuErr) {
-					console.log('Menu image error, falling back to text:', menuErr.message)
+					console.log('Menu image error, falling back:', menuErr.message)
 				}
-				// FALLBACK: original text menu below
-				{
 				let profile
 				try {
 					profile = await nimesha.profilePictureUrl(m.sender, 'image');
