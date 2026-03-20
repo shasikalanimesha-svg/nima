@@ -4201,7 +4201,7 @@ _ස්තූතියි!_ 🌸`).then(() => {
 							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🔍 SEARCH Menu විවෘත කරන්න', id: prefix + 'searchmenu' }) }]
 						},
 						{
-							url: _baseUrl + '/menucard/privacy',
+							url: _baseUrl + '/privacycard',
 							body: '🔐 *Privacy Manager*\n━━━━━━━━━━━━━━━━━\n▸ .privacy 1-3 — Last Seen\n▸ .privacy 4-5 — Online Status\n▸ .privacy 6-8 — Profile Picture\n▸ .privacy 9-11 — Status Updates\n▸ .privacy 12-13 — Read Receipts\n▸ .privacy 14-16 — Groups Add\n▸ .privacy 17-20 — Disappearing\n▸ .privacy 21 — Block List',
 							footer: '👆 Tap — Privacy settings open වෙනවා',
 							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🔐 Privacy Menu විවෘත කරන්න', id: prefix + 'privacy' }) }]
