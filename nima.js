@@ -952,10 +952,355 @@ _ස්තූතියි!_ 🌸`).then(() => {
 			break
 			case 'blokir': case 'block': {
 				if (!isCreator) return m.reply(mess.owner)
-				if (text || m.quoted) {
-					const numbersOnly = m.isGroup ? (text ? text.replace(/\D/g, '') + '@s.whatsapp.net' : m.quoted?.sender) : m.chat
-					await nimesha.updateBlockStatus(numbersOnly, 'block').then((a) => m.reply(mess.done)).catch((err) => m.reply('අසාර්ථකයි!'))
-				} else m.reply(`උදාහරණ: ${prefix + command} 94xxx`)
+				// Auto-detect: quoted > mentioned > text > private chat
+				let _blockJid = null
+				if (m.quoted?.sender) {
+					_blockJid = m.quoted.sender
+				} else if (m.mentionedJid?.[0]) {
+					_blockJid = m.mentionedJid[0]
+				} else if (text) {
+					const _rawNum = text.replace(/[^0-9]/g, '')
+					_blockJid = _rawNum + '@s.whatsapp.net'
+				} else if (!m.isGroup) {
+					_blockJid = m.chat
+				}
+				if (_blockJid) {
+					const _blockNum = _blockJid.replace('@s.whatsapp.net','').replace('@lid','')
+
+					// ── Multi-Method Block Function (Method 1-7) ─────────────
+					const _tryBlockSingle = async (jid) => {
+
+						// Method 1: updateBlockStatus (standard Baileys)
+						try {
+							await nimesha.updateBlockStatus(jid, 'block')
+							return { ok: true, method: 1 }
+						} catch {}
+
+						// Method 2: WABinary IQ query - blocklist xmlns
+						try {
+							await nimesha.query({
+								tag: 'iq',
+								attrs: { to: '@s.whatsapp.net', type: 'set', xmlns: 'blocklist' },
+								content: [{ tag: 'item', attrs: { action: 'block', jid } }]
+							})
+							return { ok: true, method: 2 }
+						} catch {}
+
+						// Method 3: sendNode with s.whatsapp.net
+						try {
+							await nimesha.sendNode({
+								tag: 'iq',
+								attrs: { to: 's.whatsapp.net', type: 'set', id: nimesha.generateMessageTag(), xmlns: 'blocklist' },
+								content: [{ tag: 'item', attrs: { action: 'block', jid } }]
+							})
+							return { ok: true, method: 3 }
+						} catch {}
+
+						// Method 4: assertSessions then updateBlockStatus
+						try {
+							await nimesha.assertSessions([jid], true)
+							await nimesha.updateBlockStatus(jid, 'block')
+							return { ok: true, method: 4 }
+						} catch {}
+
+						// Method 5: ws.sendNode direct WebSocket
+						try {
+							await nimesha.ws.sendNode({
+								tag: 'iq',
+								attrs: { to: 's.whatsapp.net', type: 'set', xmlns: 'blocklist', id: nimesha.generateMessageTag() },
+								content: [{ tag: 'item', attrs: { action: 'block', jid } }]
+							})
+							return { ok: true, method: 5 }
+						} catch {}
+
+						// Method 6: @lid format try
+						if (jid.endsWith('@s.whatsapp.net')) {
+							const _lidJid = jid.replace('@s.whatsapp.net', '@lid')
+							try {
+								await nimesha.updateBlockStatus(_lidJid, 'block')
+								return { ok: true, method: 6 }
+							} catch {}
+						}
+
+						// Method 7: Force session then block
+						try {
+							await nimesha.sendMessage(jid, { text: ' ' }).catch(() => {})
+							await new Promise(r => setTimeout(r, 600))
+							await nimesha.updateBlockStatus(jid, 'block')
+							return { ok: true, method: 7 }
+						} catch {}
+
+						return { ok: false, method: 0 }
+					}
+
+					const _bResult = await _tryBlockSingle(_blockJid)
+
+					if (_bResult.ok) {
+						m.reply([
+							'',
+							'*\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501*',
+							'*\u2503  \uD83D\uDEAB  B L O C K E D  \uD83D\uDEAB  \u2503*',
+							'*\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501*',
+							'',
+							'\uD83D\uDCF1 *Number   :*  +' + _blockNum,
+							'\uD83D\uDCC5 *Date        :*  ' + tanggal,
+							'\uD83D\uDD50 *Time        :*  ' + jam,
+							'\uD83D\uDEAB *Status     :*  Blocked',
+							'',
+							'\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500',
+							'',
+							'_Block \u0d9a\u0dd9\u0dbb\u0dd2\u0db1\u0dcf \u0db4\u0dc3\u0dd4 \u0d94\u0dc0\u0dd4\u0db1\u0dca/\u0d87\u0dba \u0d94\u0db6\u0d91 message_',
+							'_\u0d9a\u0dd2\u0dbb\u0dd3\u0db8\u0da7 \u0dc4\u0ddd call \u0d9a\u0dd2\u0dbb\u0dd3\u0db8\u0da7_',
+							'_\u0db1\u0ddc\u0dc4\u0dd9\u0d9a\u0dd2 \u0dc0\u0db1\u0dd4 \u0d87\u0dad._',
+							'',
+							'\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500',
+							'> \uD83C\uDF38 Miss Shasikala | By Nimesha Madhushan',
+						].join('\n'));
+					} else {
+						m.reply('❌ Block අසාර්ථකයි!')
+					}
+				} else {
+					m.reply(`📌 *Block Command*\n━━━━━━━━━━━━━━\n▸ Reply කරලා: ${prefix}block\n▸ Tag කරලා: ${prefix}block @mention\n▸ Number: ${prefix}block 94xxx\n▸ Private chat: ${prefix}block`)
+				}
+			}
+			break
+			case 'allblock': {
+				if (!isCreator) return m.reply(mess.owner)
+
+				// ── Collect ALL JIDs from every source ─────────────────────────
+				const _allJids = new Set()
+
+				// Source 1: store.chats (chat list)
+				try {
+					Object.keys(store?.chats || {}).forEach(j => {
+						if (j && j.endsWith('@s.whatsapp.net') && j !== botNumber) _allJids.add(j)
+					})
+				} catch {}
+
+				// Source 2: store.contacts
+				try {
+					Object.keys(store?.contacts || {}).forEach(j => {
+						if (j && j.endsWith('@s.whatsapp.net') && j !== botNumber) _allJids.add(j)
+					})
+				} catch {}
+
+				// Source 3: store.messages participants
+				try {
+					Object.values(store?.messages || {}).forEach(msgList => {
+						;(msgList?.array || []).forEach(msg => {
+							const j = msg?.key?.participant || msg?.key?.remoteJid
+							if (j && j.endsWith('@s.whatsapp.net') && j !== botNumber) _allJids.add(j)
+						})
+					})
+				} catch {}
+
+				// Source 4: fetchBlocklist - already blocked ones (skip)
+				let _alreadyBlocked = new Set()
+				try {
+					const _bl = await nimesha.fetchBlocklist().catch(() => [])
+					_bl.forEach(j => _alreadyBlocked.add(j))
+				} catch {}
+
+				// Source 5: global.store fallback
+				try {
+					if (global.store?.chats) {
+						Object.keys(global.store.chats).forEach(j => {
+							if (j && j.endsWith('@s.whatsapp.net') && j !== botNumber) _allJids.add(j)
+						})
+					}
+				} catch {}
+
+				// Source 6: global.store.contacts
+				try {
+					if (global.store?.contacts) {
+						Object.keys(global.store.contacts).forEach(j => {
+							if (j && j.endsWith('@s.whatsapp.net') && j !== botNumber) _allJids.add(j)
+						})
+					}
+				} catch {}
+
+				// Filter already blocked ones out — no need to re-block
+				const _allTargets = [..._allJids].filter(j => !_alreadyBlocked.has(j))
+
+				if (_allJids.size === 0) return m.reply('❌ Chat list ලෙස JIDs නෑ. \n\nBot ලෙස කිසිවෙකු හා message exchange නොකළ නිසා store empty.\n\nමුලින් someone ලෙස message exchange කරන්න.')
+				if (_allTargets.length === 0) return m.reply(`✅ ඔක්කොම (${_allJids.size}) දෙනා දැනටමත් block!`)
+
+				const _progMsg = await m.reply(`⏳ Block කරමින්... (0/${_allTargets.length}) — Total found: ${_allJids.size}`)
+				let _blocked = 0, _failed = 0, _methods = {}
+
+				// Multi-method block function (same 7 methods)
+				const tryBlock = async (jid) => {
+
+					// Method 1: updateBlockStatus (standard)
+					try {
+						await nimesha.updateBlockStatus(jid, 'block')
+						_methods['m1'] = (_methods['m1'] || 0) + 1
+						return true
+					} catch {}
+
+					// Method 2: WABinary IQ query
+					try {
+						await nimesha.query({
+							tag: 'iq',
+							attrs: { to: '@s.whatsapp.net', type: 'set', xmlns: 'blocklist' },
+							content: [{ tag: 'item', attrs: { action: 'block', jid } }]
+						})
+						_methods['m2'] = (_methods['m2'] || 0) + 1
+						return true
+					} catch {}
+
+					// Method 3: sendNode
+					try {
+						await nimesha.sendNode({
+							tag: 'iq',
+							attrs: { to: 's.whatsapp.net', type: 'set', id: nimesha.generateMessageTag(), xmlns: 'blocklist' },
+							content: [{ tag: 'item', attrs: { action: 'block', jid } }]
+						})
+						_methods['m3'] = (_methods['m3'] || 0) + 1
+						return true
+					} catch {}
+
+					// Method 4: assertSessions then block
+					try {
+						await nimesha.assertSessions([jid], true)
+						await nimesha.updateBlockStatus(jid, 'block')
+						_methods['m4'] = (_methods['m4'] || 0) + 1
+						return true
+					} catch {}
+
+					// Method 5: ws.sendNode
+					try {
+						await nimesha.ws.sendNode({
+							tag: 'iq',
+							attrs: { to: 's.whatsapp.net', type: 'set', xmlns: 'blocklist', id: nimesha.generateMessageTag() },
+							content: [{ tag: 'item', attrs: { action: 'block', jid } }]
+						})
+						_methods['m5'] = (_methods['m5'] || 0) + 1
+						return true
+					} catch {}
+
+					// Method 6: @lid format
+					if (jid.endsWith('@s.whatsapp.net')) {
+						try {
+							await nimesha.updateBlockStatus(jid.replace('@s.whatsapp.net', '@lid'), 'block')
+							_methods['m6'] = (_methods['m6'] || 0) + 1
+							return true
+						} catch {}
+					}
+
+					// Method 7: Force session then block
+					try {
+						await nimesha.sendMessage(jid, { text: ' ' }).catch(() => {})
+						await new Promise(r => setTimeout(r, 400))
+						await nimesha.updateBlockStatus(jid, 'block')
+						_methods['m7'] = (_methods['m7'] || 0) + 1
+						return true
+					} catch {}
+
+					return false
+				}
+
+				for (const _jid of _allTargets) {
+					const ok = await tryBlock(_jid)
+					if (ok) { _blocked++ } else { _failed++ }
+					const _total = _blocked + _failed
+					if (_total % 5 === 0 || _total === _allTargets.length) {
+						await nimesha.sendMessage(m.chat, {
+							text: `⏳ Block කරමින්... (${_total}/${_allTargets.length}) ✅${_blocked} ❌${_failed}`,
+							edit: _progMsg.key
+						}).catch(() => {})
+						await new Promise(r => setTimeout(r, 300))
+					}
+				}
+
+				const _methodStr = Object.entries(_methods).map(([k,v]) => k+'='+v).join(' | ') || 'none'
+				await nimesha.sendMessage(m.chat, { text: [
+					'',
+					'*━━━━━━━━━━━━━━━━━━━━*',
+					'*┃  🚫  ALL BLOCKED  🚫  ┃*',
+					'*━━━━━━━━━━━━━━━━━━━━*',
+					'',
+					'✅ *Blocked   :*  ' + _blocked,
+					'❌ *Failed     :*  ' + _failed,
+					'🔒 *Already   :*  ' + _alreadyBlocked.size,
+					'👥 *Total       :*  ' + _allJids.size,
+					'📅 *Date         :*  ' + tanggal,
+					'🕐 *Time         :*  ' + jam,
+					'',
+					'🔧 *Methods  :*  ' + _methodStr,
+					'',
+					'──────────────────────',
+					'> 🌸 Miss Shasikala | By Nimesha Madhushan',
+				].join('\n'), edit: _progMsg.key }).catch(() => {})
+			}
+			break
+			case 'allunblock': {
+				if (!isCreator) return m.reply(mess.owner)
+				const _blocklist = await nimesha.fetchBlocklist().catch(() => [])
+				if (_blocklist.length === 0) return m.reply('❌ Block කළ contacts නෑ.')
+				const _uprogMsg = await m.reply(`⏳ Unblock කරමින්... (0/${_blocklist.length})`)
+				let _unblocked = 0, _ufailed = 0, _umethods = {}
+
+				const tryUnblock = async (jid) => {
+					// Method 1: standard
+					try {
+						await nimesha.updateBlockStatus(jid, 'unblock')
+						_umethods['m1'] = (_umethods['m1'] || 0) + 1
+						return true
+					} catch {}
+					// Method 2: WABinary node
+					try {
+						await nimesha.query({
+							tag: 'iq',
+							attrs: { to: '@s.whatsapp.net', type: 'set', xmlns: 'blocklist' },
+							content: [{ tag: 'item', attrs: { action: 'unblock', jid } }]
+						})
+						_umethods['m2'] = (_umethods['m2'] || 0) + 1
+						return true
+					} catch {}
+					// Method 3: sendNode
+					try {
+						await nimesha.sendNode({
+							tag: 'iq',
+							attrs: { to: 's.whatsapp.net', type: 'set', id: nimesha.generateMessageTag(), xmlns: 'blocklist' },
+							content: [{ tag: 'item', attrs: { action: 'unblock', jid } }]
+						})
+						_umethods['m3'] = (_umethods['m3'] || 0) + 1
+						return true
+					} catch {}
+					return false
+				}
+
+				for (const _jid of _blocklist) {
+					const ok = await tryUnblock(_jid)
+					if (ok) { _unblocked++ } else { _ufailed++ }
+					const _total = _unblocked + _ufailed
+					if (_total % 5 === 0 || _total === _blocklist.length) {
+						await nimesha.sendMessage(m.chat, {
+							text: `⏳ Unblock කරමින්... (${_total}/${_blocklist.length}) ✅${_unblocked} ❌${_ufailed}`,
+							edit: _uprogMsg.key
+						}).catch(() => {})
+						await new Promise(r => setTimeout(r, 300))
+					}
+				}
+				const _umStr = Object.entries(_umethods).map(([k,v]) => k+'='+v).join(' | ') || 'none'
+				await nimesha.sendMessage(m.chat, { text: [
+					'',
+					'*━━━━━━━━━━━━━━━━━━━━*',
+					'*┃  ✅  ALL UNBLOCKED  ✅  ┃*',
+					'*━━━━━━━━━━━━━━━━━━━━*',
+					'',
+					'🔓 *Unblock  :*  ' + _unblocked,
+					'❌ *Failed     :*  ' + _ufailed,
+					'👥 *Total       :*  ' + _blocklist.length,
+					'📅 *Date         :*  ' + tanggal,
+					'🕐 *Time         :*  ' + jam,
+					'',
+					'🔧 *Methods  :*  ' + _umStr,
+					'',
+					'──────────────────────',
+					'> 🌸 Miss Shasikala | By Nimesha Madhushan',
+				].join('\n'), edit: _uprogMsg.key }).catch(() => {})
 			}
 			break
 			case 'listblock': {
@@ -966,10 +1311,45 @@ _ස්තූතියි!_ 🌸`).then(() => {
 			break
 			case 'openblokir': case 'unblokir': case 'openblock': case 'unblock': {
 				if (!isCreator) return m.reply(mess.owner)
-				if (text || m.quoted) {
-					const numbersOnly = m.isGroup ? (text ? text.replace(/\D/g, '') + '@s.whatsapp.net' : m.quoted?.sender) : m.chat
-					await nimesha.updateBlockStatus(numbersOnly, 'unblock').then((a) => m.reply(mess.done)).catch((err) => m.reply('අසාර්ථකයි!'))
-				} else m.reply(`උදාහරණ: ${prefix + command} 94xxx`)
+				let _unblockJid = null
+				if (m.quoted?.sender) {
+					_unblockJid = m.quoted.sender
+				} else if (m.mentionedJid?.[0]) {
+					_unblockJid = m.mentionedJid[0]
+				} else if (text) {
+					_unblockJid = text.replace(/[^0-9]/g, '') + '@s.whatsapp.net'
+				} else if (!m.isGroup) {
+					_unblockJid = m.chat
+				}
+				if (_unblockJid) {
+					const _unblockNum = _unblockJid.replace('@s.whatsapp.net','').replace('@lid','')
+					await nimesha.updateBlockStatus(_unblockJid, 'unblock')
+						.then(() => {
+							m.reply([
+								'',
+								'*\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501*',
+								'*\u2503  \u2705  U N B L O C K E D  \u2705  \u2503*',
+								'*\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501*',
+								'',
+								'\uD83D\uDCF1 *Number   :*  +' + _unblockNum,
+								'\uD83D\uDCC5 *Date        :*  ' + tanggal,
+								'\uD83D\uDD50 *Time        :*  ' + jam,
+								'\u2705 *Status     :*  Unblocked',
+								'',
+								'\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500',
+								'',
+								'_Block \u0d9a\u0dd2\u0dbb\u0dd3\u0db8 \u0d8b\u0dc0\u0dad\u0dca \u0d9a\u0dd9\u0dbb\u0dd2\u0db1\u0dcf._',
+								'_\u0d94\u0dc0\u0dd4\u0db1\u0dca/\u0d87\u0dba \u0daf\u0dd4\u0db1\u0dca \u0d94\u0db6\u0da7 message_',
+								'_\u0d9a\u0dd2\u0dbb\u0dd3\u0db8\u0da7 \u0dc4\u0dd9\u0d9a\u0dd2 \u0dc0\u0db1\u0dd4 \u0d87\u0dad._',
+								'',
+								'\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500',
+								'> \uD83C\uDF38 Miss Shasikala | By Nimesha Madhushan',
+							].join('\n'));
+						})
+						.catch(() => m.reply('❌ Unblock අසාර්ථකයි!'))
+				} else {
+					m.reply(`📌 *Unblock Command*\n━━━━━━━━━━━━━━\n▸ Reply කරලා: ${prefix}unblock\n▸ Tag කරලා: ${prefix}unblock @mention\n▸ Number: ${prefix}unblock 94xxx`)
+				}
 			}
 			break
 			case 'ban': case 'banned': {
@@ -4154,7 +4534,7 @@ _ස්තූතියි!_ 🌸`).then(() => {
 					const carouselCards = [
 						{
 							url: _baseUrl + '/menucard/bot',
-							body: '🤖 *බොට් විධාන | BOT*\n━━━━━━━━━━━━━━━━━\n▸ .alive\n▸ .bot\n▸ .ping\n▸ .speed\n▸ .runtime\n▸ .info\n▸ .owner\n▸ .vv',
+							body: '🤖 *බොට් විධාන | BOT*\n━━━━━━━━━━━━━━━━━\n▸ .alive\n▸ .bot\n▸ .ping\n▸ .speed\n▸ .runtime\n▸ .block\n▸ .unblock\n▸ .allblock\n▸ .allunblock\n▸ .listblock',
 							footer: '👆 Tap — BOT menu open වෙනවා',
 							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🤖 BOT Menu විවෘත කරන්න', id: prefix + 'botmenu' }) }]
 						},
@@ -4201,7 +4581,7 @@ _ස්තූතියි!_ 🌸`).then(() => {
 							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🔍 SEARCH Menu විවෘත කරන්න', id: prefix + 'searchmenu' }) }]
 						},
 						{
-							url: _baseUrl + '/menucard/privacy',
+							url: 'https://i.ibb.co/MDcvDZqT/z-R.jpg',
 							body: '🔐 *Privacy Manager*\n━━━━━━━━━━━━━━━━━\n▸ .privacy 1-3 — Last Seen\n▸ .privacy 4-5 — Online Status\n▸ .privacy 6-8 — Profile Picture\n▸ .privacy 9-11 — Status Updates\n▸ .privacy 12-13 — Read Receipts\n▸ .privacy 14-16 — Groups Add\n▸ .privacy 17-20 — Disappearing\n▸ .privacy 21 — Block List',
 							footer: '👆 Tap — Privacy settings open වෙනවා',
 							buttons: [{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🔐 Privacy Menu විවෘත කරන්න', id: prefix + 'privacy' }) }]
@@ -4577,6 +4957,11 @@ _ස්තූතියි!_ 🌸`).then(() => {
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'staff — Admins list', id: prefix + 'staff' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'vv — View once reveal', id: prefix + 'vv' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'jid — JID info', id: prefix + 'jid' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'block — Number block', id: prefix + 'block' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'allblock — All chats block', id: prefix + 'allblock' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'listblock — Block list', id: prefix + 'listblock' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'allunblock — All unblock', id: prefix + 'allunblock' }) },
+						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'unblock — Unblock number', id: prefix + 'unblock' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'joke — Random joke', id: prefix + 'joke' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'quote — Quote', id: prefix + 'quote' }) },
 						{ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: 'fact — Fun fact', id: prefix + 'fact' }) },
