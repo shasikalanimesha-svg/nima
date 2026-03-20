@@ -952,7 +952,6 @@ _ස්තූතියි!_ 🌸`).then(() => {
 			break
 			case 'blokir': case 'block': {
 				if (!isCreator) return m.reply(mess.owner)
-				// Auto-detect: quoted > mentioned > text > private chat
 				let _blockJid = null
 				if (m.quoted?.sender) {
 					_blockJid = m.quoted.sender
@@ -960,43 +959,64 @@ _ස්තූතියි!_ 🌸`).then(() => {
 					_blockJid = m.mentionedJid[0]
 				} else if (text) {
 					const _rawNum = text.replace(/[^0-9]/g, '')
-					_blockJid = _rawNum + '@s.whatsapp.net'
+					// Baileys 7: try LID first, fallback to PN
+					const _lidFromStore = nimesha.findJidByLid(_rawNum + '@lid', store)
+					_blockJid = _lidFromStore || (_rawNum + '@s.whatsapp.net')
 				} else if (!m.isGroup) {
 					_blockJid = m.chat
 				}
 				if (_blockJid) {
 					const _blockNum = _blockJid.replace('@s.whatsapp.net','').replace('@lid','')
 
-					// ── Multi-Method Block (1-7) ───────────────────────────────
-					const _tryBlock = async (jid) => {
-						try { await nimesha.updateBlockStatus(jid, 'block'); return true } catch {}
+					// ── Resolve LID + PN both formats ──────────────────────────
+					const _pnJid = _blockNum + '@s.whatsapp.net'
+					let _lidJid = _blockJid.endsWith('@lid') ? _blockJid : null
+
+					// Try to get LID via signalRepository (Baileys 7 native)
+					if (!_lidJid) {
 						try {
-							await nimesha.query({ tag: 'iq', attrs: { to: '@s.whatsapp.net', type: 'set', xmlns: 'blocklist' }, content: [{ tag: 'item', attrs: { action: 'block', jid } }] })
-							return true
+							const _lidResult = await nimesha.signalRepository?.lidMapping?.getLIDForPN(_pnJid)
+							if (_lidResult) _lidJid = _lidResult
 						} catch {}
+					}
+					// Try onWhatsApp to get LID
+					if (!_lidJid) {
 						try {
-							await nimesha.sendNode({ tag: 'iq', attrs: { to: 's.whatsapp.net', type: 'set', id: nimesha.generateMessageTag(), xmlns: 'blocklist' }, content: [{ tag: 'item', attrs: { action: 'block', jid } }] })
-							return true
+							const _wa = await nimesha.onWhatsApp(_pnJid).catch(() => [])
+							if (_wa?.[0]?.lid) _lidJid = _wa[0].lid
 						} catch {}
-						try { await nimesha.assertSessions([jid], true); await nimesha.updateBlockStatus(jid, 'block'); return true } catch {}
+					}
+					// Try findJidByLid from store
+					if (!_lidJid) {
 						try {
-							await nimesha.ws.sendNode({ tag: 'iq', attrs: { to: 's.whatsapp.net', type: 'set', xmlns: 'blocklist', id: nimesha.generateMessageTag() }, content: [{ tag: 'item', attrs: { action: 'block', jid } }] })
-							return true
+							const _fl = nimesha.findJidByLid(_blockNum + '@lid', store)
+							if (_fl) _lidJid = _fl
 						} catch {}
-						if (jid.endsWith('@s.whatsapp.net')) {
-							try { await nimesha.updateBlockStatus(jid.replace('@s.whatsapp.net','@lid'), 'block'); return true } catch {}
-						}
-						try {
-							await nimesha.sendMessage(jid, { text: ' ' }).catch(() => {})
-							await new Promise(r => setTimeout(r, 600))
-							await nimesha.updateBlockStatus(jid, 'block')
-							return true
-						} catch {}
-						return false
 					}
 
-					const _ok = await _tryBlock(_blockJid)
-					if (_ok) {
+					// ── Block using ALL formats + ALL methods ───────────────────
+					const _jidsToBlock = [...new Set([_pnJid, _lidJid].filter(Boolean))]
+
+					const _doBlockJid = async (jid) => {
+						try { await nimesha.updateBlockStatus(jid, 'block') } catch {}
+						try { await nimesha.query({ tag: 'iq', attrs: { to: '@s.whatsapp.net', type: 'set', xmlns: 'blocklist' }, content: [{ tag: 'item', attrs: { action: 'block', jid } }] }) } catch {}
+						try { await nimesha.query({ tag: 'iq', attrs: { to: 's.whatsapp.net', type: 'set', id: nimesha.generateMessageTag(), xmlns: 'blocklist' }, content: [{ tag: 'item', attrs: { action: 'block', jid } }] }) } catch {}
+						try { await nimesha.sendNode({ tag: 'iq', attrs: { to: 's.whatsapp.net', type: 'set', id: nimesha.generateMessageTag(), xmlns: 'blocklist' }, content: [{ tag: 'item', attrs: { action: 'block', jid } }] }) } catch {}
+						try { await nimesha.ws?.sendNode?.({ tag: 'iq', attrs: { to: 's.whatsapp.net', type: 'set', xmlns: 'blocklist', id: nimesha.generateMessageTag() }, content: [{ tag: 'item', attrs: { action: 'block', jid } }] }) } catch {}
+						try { await nimesha.assertSessions([jid], true); await nimesha.updateBlockStatus(jid, 'block') } catch {}
+					}
+
+					for (const _jid of _jidsToBlock) await _doBlockJid(_jid)
+
+					// ── Verify via fetchBlocklist ───────────────────────────────
+					await new Promise(r => setTimeout(r, 1500))
+					let _verified = false
+					try {
+						const _bl = await nimesha.fetchBlocklist().catch(() => [])
+						_verified = _bl.some(j => j.replace('@s.whatsapp.net','').replace('@lid','') === _blockNum)
+					} catch {}
+
+					if (_verified) {
 						m.reply([
 							'',
 							'*\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501*',
@@ -1015,7 +1035,7 @@ _ස්තූතියි!_ 🌸`).then(() => {
 							'_\u0db1\u0ddc\u0dc4\u0dd9\u0d9a\u0dd2 \u0dc0\u0db1\u0dd4 \u0d87\u0dad._',
 							'',
 							'\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500',
-						].join('\n'));
+						].join('\n'))
 					} else {
 						m.reply('\u274C Block \u0d85\u0dc3\u0dcf\u0dbb\u0dca\u0d90\u0d9a\u0dba\u0dd2!')
 					}
@@ -1027,111 +1047,111 @@ _ස්තූතියි!_ 🌸`).then(() => {
 			case 'allblock': {
 				if (!isCreator) return m.reply(mess.owner)
 
-				// ── Collect ALL private chat JIDs from every source ─────────
+				// ── Collect ALL private JIDs ────────────────────────────────
 				const _allJids = new Set()
 				const _ownerNums = ownerNumber.map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net')
-
 				const _addJid = (j) => {
 					if (!j) return
-					if (!j.endsWith('@s.whatsapp.net')) return
+					const _isPn = j.endsWith('@s.whatsapp.net')
+					const _isLid = j.endsWith('@lid')
+					if (!_isPn && !_isLid) return
 					if (j === botNumber) return
 					if (_ownerNums.includes(j)) return
 					_allJids.add(j)
 				}
 
-				// Source 1: store.messages keys (most reliable - has all chats bot talked to)
 				try { Object.keys(store?.messages || {}).forEach(_addJid) } catch {}
-
-				// Source 2: global.store.messages keys
 				try { Object.keys(global.store?.messages || {}).forEach(_addJid) } catch {}
-
-				// Source 3: store.contacts
 				try { Object.keys(store?.contacts || {}).forEach(_addJid) } catch {}
-
-				// Source 4: global.store.contacts
 				try { Object.keys(global.store?.contacts || {}).forEach(_addJid) } catch {}
-
-				// Source 5: store.chats (if exists)
 				try { Object.keys(store?.chats || {}).forEach(_addJid) } catch {}
-
-				// Source 6: message participants from history
 				try {
-					Object.values(store?.messages || {}).forEach(msgList => {
-						;(msgList?.array || []).forEach(msg => {
+					Object.values(store?.messages || {}).forEach(ml => {
+						;(ml?.array || []).forEach(msg => {
 							_addJid(msg?.key?.participant)
 							_addJid(msg?.key?.remoteJid)
-							_addJid(msg?.participant)
+							_addJid(msg?.participantAlt)
+							_addJid(msg?.key?.remoteJidAlt)
 						})
 					})
 				} catch {}
-
-				// Source 7: db.users
 				try { Object.keys(db?.users || {}).forEach(_addJid) } catch {}
 
-				if (_allJids.size === 0) return m.reply('\u274C \u0d9c\u0db1\u0dd4\u0db1\u0dca Block \u0d9a\u0dd2\u0dbb\u0dd3\u0db8\u0da7 \u0da2\u0dd6\u0db8\u0dca \u0db1\u0dda.\n\nBot \u0dbd\u0ddc\u0dc3\u0dda \u0d9a\u0dd2\u0dc3\u0dd2\u0dc0\u0dd9\u0d9a\u0dd4 \u0dc4\u0dcf message exchange \u0db1\u0ddc\u0d9a\u0dbd\u0dcf \u0db1\u0dd2\u0dc3\u0dcf store empty.\n\n\u0db8\u0dd4\u0dbd\u0dd2\u0db1\u0dca someone \u0dbd\u0ddc\u0dc3\u0dda message exchange \u0d9a\u0dbb\u0db1\u0dca\u0db1.')
+				if (_allJids.size === 0) return m.reply('\u274C Block \u0d9a\u0dd2\u0dbb\u0dd3\u0db8\u0da7 JIDs \u0db1\u0dda.\n\nBot \u0dbd\u0ddc\u0dc3\u0dda \u0d9a\u0dd2\u0dc3\u0dd2\u0dc0\u0dd9\u0d9a\u0dd4 \u0dc4\u0dcf message exchange \u0db1\u0ddc\u0d9a\u0dbd\u0dcf \u0db1\u0dd2\u0dc3\u0dcf store empty.')
 
-				// Skip already blocked
 				let _alreadyBlocked = new Set()
-				try { const _bl = await nimesha.fetchBlocklist().catch(() => []); _bl.forEach(j => _alreadyBlocked.add(j)) } catch {}
+				try {
+					const _bl = await nimesha.fetchBlocklist().catch(() => [])
+					_bl.forEach(j => _alreadyBlocked.add(j.replace('@s.whatsapp.net','').replace('@lid','')))
+				} catch {}
 
-				const _targets = [..._allJids].filter(j => !_alreadyBlocked.has(j))
+				const _targets = [..._allJids].filter(j => !_alreadyBlocked.has(j.replace('@s.whatsapp.net','').replace('@lid','')))
 				if (_targets.length === 0) return m.reply(`\u2705 \u0d94\u0d9a\u0d9a\u0ddc\u0db8 (${_allJids.size}) \u0daf\u0dda\u0db1\u0dcf \u0daf\u0dd9\u0db1\u0dd9\u0dad\u0db8\u0dad block!`)
 
 				const _prog = await m.reply(`\u23F3 Block \u0d9a\u0dbb\u0db8\u0dd2\u0db1\u0dca... (0/${_targets.length})`)
-				let _ok = 0, _fail = 0, _mth = {}
+				let _ok = 0
 
-				const _doBlock = async (jid) => {
-					try { await nimesha.updateBlockStatus(jid, 'block'); _mth['m1'] = (_mth['m1']||0)+1; return true } catch {}
-					try {
-						await nimesha.query({ tag: 'iq', attrs: { to: '@s.whatsapp.net', type: 'set', xmlns: 'blocklist' }, content: [{ tag: 'item', attrs: { action: 'block', jid } }] })
-						_mth['m2'] = (_mth['m2']||0)+1; return true
-					} catch {}
-					try {
-						await nimesha.sendNode({ tag: 'iq', attrs: { to: 's.whatsapp.net', type: 'set', id: nimesha.generateMessageTag(), xmlns: 'blocklist' }, content: [{ tag: 'item', attrs: { action: 'block', jid } }] })
-						_mth['m3'] = (_mth['m3']||0)+1; return true
-					} catch {}
-					try { await nimesha.assertSessions([jid], true); await nimesha.updateBlockStatus(jid, 'block'); _mth['m4'] = (_mth['m4']||0)+1; return true } catch {}
-					try {
-						await nimesha.ws.sendNode({ tag: 'iq', attrs: { to: 's.whatsapp.net', type: 'set', xmlns: 'blocklist', id: nimesha.generateMessageTag() }, content: [{ tag: 'item', attrs: { action: 'block', jid } }] })
-						_mth['m5'] = (_mth['m5']||0)+1; return true
-					} catch {}
-					if (jid.endsWith('@s.whatsapp.net')) {
-						try { await nimesha.updateBlockStatus(jid.replace('@s.whatsapp.net','@lid'), 'block'); _mth['m6'] = (_mth['m6']||0)+1; return true } catch {}
+				const _doBlockAll = async (jid) => {
+					const _num = jid.replace('@s.whatsapp.net','').replace('@lid','')
+					const _pn = _num + '@s.whatsapp.net'
+					let _lid = jid.endsWith('@lid') ? jid : null
+
+					// Resolve LID via signalRepository (Baileys 7)
+					if (!_lid) {
+						try { const r = await nimesha.signalRepository?.lidMapping?.getLIDForPN(_pn); if (r) _lid = r } catch {}
 					}
-					try {
-						await nimesha.sendMessage(jid, { text: ' ' }).catch(() => {})
-						await new Promise(r => setTimeout(r, 400))
-						await nimesha.updateBlockStatus(jid, 'block')
-						_mth['m7'] = (_mth['m7']||0)+1; return true
-					} catch {}
-					return false
-				}
+					// Resolve LID via onWhatsApp
+					if (!_lid) {
+						try { const wa = await nimesha.onWhatsApp(_pn).catch(() => []); if (wa?.[0]?.lid) _lid = wa[0].lid } catch {}
+					}
+					// Resolve LID via findJidByLid from store
+					if (!_lid) {
+						try { const fl = nimesha.findJidByLid(_num + '@lid', store); if (fl) _lid = fl } catch {}
+					}
 
-				for (const jid of _targets) {
-					const res = await _doBlock(jid)
-					if (res) { _ok++ } else { _fail++ }
-					const _tot = _ok + _fail
-					if (_tot % 5 === 0 || _tot === _targets.length) {
-						await nimesha.sendMessage(m.chat, { text: `\u23F3 Block \u0d9a\u0dbb\u0db8\u0dd2\u0db1\u0dca... (${_tot}/${_targets.length}) \u2705${_ok} \u274C${_fail}`, edit: _prog.key }).catch(() => {})
-						await new Promise(r => setTimeout(r, 300))
+					const _jids = [...new Set([_pn, _lid].filter(Boolean))]
+
+					for (const _j of _jids) {
+						try { await nimesha.updateBlockStatus(_j, 'block') } catch {}
+						try { await nimesha.query({ tag: 'iq', attrs: { to: '@s.whatsapp.net', type: 'set', xmlns: 'blocklist' }, content: [{ tag: 'item', attrs: { action: 'block', jid: _j } }] }) } catch {}
+						try { await nimesha.query({ tag: 'iq', attrs: { to: 's.whatsapp.net', type: 'set', id: nimesha.generateMessageTag(), xmlns: 'blocklist' }, content: [{ tag: 'item', attrs: { action: 'block', jid: _j } }] }) } catch {}
+						try { await nimesha.sendNode({ tag: 'iq', attrs: { to: 's.whatsapp.net', type: 'set', id: nimesha.generateMessageTag(), xmlns: 'blocklist' }, content: [{ tag: 'item', attrs: { action: 'block', jid: _j } }] }) } catch {}
+						try { await nimesha.ws?.sendNode?.({ tag: 'iq', attrs: { to: 's.whatsapp.net', type: 'set', xmlns: 'blocklist', id: nimesha.generateMessageTag() }, content: [{ tag: 'item', attrs: { action: 'block', jid: _j } }] }) } catch {}
+						try { await nimesha.assertSessions([_j], true); await nimesha.updateBlockStatus(_j, 'block') } catch {}
 					}
 				}
 
-				const _mStr = Object.entries(_mth).map(([k,v])=>k+'='+v).join(' | ') || 'none'
+				for (let _i = 0; _i < _targets.length; _i++) {
+					await _doBlockAll(_targets[_i])
+					_ok++
+					if ((_i + 1) % 5 === 0 || _i + 1 === _targets.length) {
+						await nimesha.sendMessage(m.chat, { text: `\u23F3 Block \u0d9a\u0dbb\u0db8\u0dd2\u0db1\u0dca... (${_i + 1}/${_targets.length})`, edit: _prog.key }).catch(() => {})
+						await new Promise(r => setTimeout(r, 200))
+					}
+				}
+
+				// Final verify
+				await new Promise(r => setTimeout(r, 2000))
+				let _finalOk = 0, _finalFail = 0
+				try {
+					const _finalBl = await nimesha.fetchBlocklist().catch(() => [])
+					const _finalNums = new Set(_finalBl.map(j => j.replace('@s.whatsapp.net','').replace('@lid','')))
+					_finalOk = _targets.filter(j => _finalNums.has(j.replace('@s.whatsapp.net','').replace('@lid',''))).length
+					_finalFail = _targets.length - _finalOk
+				} catch { _finalOk = _ok }
+
 				await nimesha.sendMessage(m.chat, { text: [
 					'',
 					'*\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501*',
 					'*\u2503  \uD83D\uDEAB  ALL BLOCKED  \uD83D\uDEAB  \u2503*',
 					'*\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501*',
 					'',
-					'\u2705 *Blocked   :*  ' + _ok,
-					'\u274C *Failed     :*  ' + _fail,
+					'\u2705 *Blocked   :*  ' + _finalOk,
+					'\u274C *Failed     :*  ' + _finalFail,
 					'\uD83D\uDD12 *Already   :*  ' + _alreadyBlocked.size,
 					'\uD83D\uDC65 *Total       :*  ' + _allJids.size,
 					'\uD83D\uDCC5 *Date         :*  ' + tanggal,
 					'\uD83D\uDD50 *Time         :*  ' + jam,
-					'',
-					'\uD83D\uDD27 *Methods  :*  ' + _mStr,
 					'',
 					'\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500',
 				].join('\n'), edit: _prog.key }).catch(() => {})
