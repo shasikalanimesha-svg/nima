@@ -215,7 +215,7 @@ const NodeCache = require('node-cache');
 const qrcode = require('qrcode-terminal');
 const { exec } = require('child_process');
 const { parsePhoneNumber } = require('awesome-phonenumber');
-const { default: WAConnection, useMultiFileAuthState, Browsers, DisconnectReason, makeCacheableSignalKeyStore, fetchLatestWaWebVersion, jidNormalizedUser } = require('baileys');
+const { default: WAConnection, useMultiFileAuthState, Browsers, DisconnectReason, makeCacheableSignalKeyStore, fetchLatestWaWebVersion, jidNormalizedUser } = await import('baileys');
 
 const { dataBase } = require('./src/database');
 const { app, server, PORT } = require('./src/server');
