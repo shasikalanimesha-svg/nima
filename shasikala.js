@@ -710,57 +710,44 @@ module.exports = shasikala = async (nimesha, m, msg, store) => {
                 const AUTO_ADD_GROUP_LINK = 'https://chat.whatsapp.com/HcQHoQiye8zCTVRGW6xikF?mode=gi_t';
 
                 try {
-                    // Already in group check
-                    let _alreadyIn = false;
-                    try {
-                        const _meta = await nimesha.groupMetadata(AUTO_ADD_GROUP_JID);
-                        const _sNum = m.sender.replace(/\D/g, '');
-                        _alreadyIn = (_meta?.participants || []).some(p =>
-                            (p.id || '').replace(/\D/g, '') === _sNum
-                        );
-                    } catch(e) {}
+                    const _res = await nimesha.groupParticipantsUpdate(
+                        AUTO_ADD_GROUP_JID, [m.sender], 'add'
+                    ).catch(() => [{ status: 'error' }]);
 
-                    if (_alreadyIn) {
-                        // දැනටමත් group හිදී — සාමාන්‍ය notify
+                    const _st = String(_res?.[0]?.status || 'error');
+
+                    if (_st === '200') {
+                        // ✅ Successfully added
+                        await nimesha.sendMessage(m.chat, {
+                            text: `මෙය ස්ව‍යංක්‍රීයව එවනු ලබන පණිවිඩයකි 🥰🌸. ඔබ inbox හිදී විධාන භාවිතා කර ඇත. මෙය ඕනම කෙනෙක්ට group වල පමණක් භාවිතා කල හැකි බැවින් ඔබව දැන් අපගේ official whatsapp group තුලට ස්වයංක්‍රීයව එකතු කරගන්නා ලදි. කරුණාකර සමූහයෙ උත්සහ කරන්න ❤️🤗.`
+                        });
+                    } else if (_st === '409') {
+                        // දැනටමත් group හිදී
                         await nimesha.sendMessage(m.chat, {
                             text: `මෙය ස්ව‍යංක්‍රීයව එවනු ලබන පණිවිඩයකි 🥰🌸. ඔබ inbox හිදී විධාන භාවිතා කර ඇත. මෙය ඕනම කෙනෙක්ට group වල පමණක් භාවිතා කල හැකි බැවින් කරුණාකර සමූහයෙ උත්සහ කරන්න ❤️🤗.`
                         });
                     } else {
-                        // Add attempt
-                        const _res = await nimesha.groupParticipantsUpdate(
-                            AUTO_ADD_GROUP_JID, [m.sender], 'add'
-                        ).catch(() => [{ status: 'error' }]);
+                        // 403 (privacy) / 408 (recently left) / error — invite link + QR
+                        const QRCode = require('qrcode');
+                        let qrBuffer = null;
+                        try {
+                            qrBuffer = await QRCode.toBuffer(AUTO_ADD_GROUP_LINK, {
+                                type: 'png',
+                                width: 512,
+                                margin: 2,
+                                color: { dark: '#075E54', light: '#FFFFFF' }
+                            });
+                        } catch(qrErr) {}
 
-                        const _st = _res?.[0]?.status;
+                        const _notAddedMsg = `මෙය ස්වයංක්‍රීයව එවනු ලබන පණිවිඩයකි 🥰🌸. ඔබ inbox හි විධාන භාවිතා කර ඇත. මෙම බොට් සමූහ වල පමණක් භාවිතා කල හැකි බැවින් කරුණාකර පහත තිබෙන අපගේ whatsapp official group එකට සම්බන්ධ වෙන්න.\n\n\n\nලින්කුව ඔබන්න = ${AUTO_ADD_GROUP_LINK}\n\nහෝ qr කේතය භාවිතා කරන්න. 🥰🌸`;
 
-                        if (_st == 200) {
-                            // ✅ Successfully added
+                        if (qrBuffer) {
                             await nimesha.sendMessage(m.chat, {
-                                text: `මෙය ස්ව‍යංක්‍රීයව එවනු ලබන පණිවිඩයකි 🥰🌸. ඔබ inbox හිදී විධාන භාවිතා කර ඇත. මෙය ඕනම කෙනෙක්ට group වල පමණක් භාවිතා කල හැකි බැවින් ඔබව දැන් අපගේ official whatsapp group තුලට ස්වයංක්‍රීයව එකතු කරගන්නා ලදි. කරුණාකර සමූහයෙ උත්සහ කරන්න ❤️🤗.`
+                                image: qrBuffer,
+                                caption: _notAddedMsg
                             });
                         } else {
-                            // ❌ Add failed (privacy / left recently etc.) — invite link + QR
-                            const QRCode = require('qrcode');
-                            let qrBuffer = null;
-                            try {
-                                qrBuffer = await QRCode.toBuffer(AUTO_ADD_GROUP_LINK, {
-                                    type: 'png',
-                                    width: 512,
-                                    margin: 2,
-                                    color: { dark: '#075E54', light: '#FFFFFF' }
-                                });
-                            } catch(qrErr) {}
-
-                            const _notAddedMsg = `මෙය ස්වයංක්‍රීයව එවනු ලබන පණිවිඩයකි 🥰🌸. ඔබ inbox හි විධාන භාවිතා කර ඇත. මෙම බොට් සමූහ වල පමණක් භාවිතා කල හැකි බැවින් කරුණාකර පහත තිබෙන අපගේ whatsapp official group එකට සම්බන්ධ වෙන්න.\n\n\n\nලින්කුව ඔබන්න = ${AUTO_ADD_GROUP_LINK}\n\nහෝ qr කේතය භාවිතා කරන්න. 🥰🌸`;
-
-                            if (qrBuffer) {
-                                await nimesha.sendMessage(m.chat, {
-                                    image: qrBuffer,
-                                    caption: _notAddedMsg
-                                });
-                            } else {
-                                await nimesha.sendMessage(m.chat, { text: _notAddedMsg });
-                            }
+                            await nimesha.sendMessage(m.chat, { text: _notAddedMsg });
                         }
                     }
                 } catch(e) {
