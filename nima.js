@@ -936,26 +936,54 @@ _ස්තූතියි!_ 🌸`).then(() => {
 			break
 			case 'clearchat': {
 				if (!isCreator) return m.reply(mess.owner)
-				let clearSuccess = false
 
-				// Method 1: chatModify with delete
+				const statusMsg = await m.reply('🗑️ *Chat මකමින්...*')
+
+				// Method 1: store messages individually delete
+				let deletedCount = 0
+				let method1Success = false
+				try {
+					const storedMsgs = global.store?.messages?.[m.chat]?.array || []
+					if (storedMsgs.length > 0) {
+						const chunks = []
+						for (let i = 0; i < storedMsgs.length; i += 5) chunks.push(storedMsgs.slice(i, i + 5))
+						for (const chunk of chunks) {
+							await Promise.allSettled(chunk.map(async (msg) => {
+								try {
+									await nimesha.sendMessage(m.chat, { delete: msg.key })
+									deletedCount++
+								} catch {}
+							}))
+							await new Promise(r => setTimeout(r, 300))
+						}
+						method1Success = deletedCount > 0
+					}
+				} catch (e1) {}
+
+				// Method 2: chatModify clear
+				let method2Success = false
+				try {
+					await nimesha.chatModify({ clear: { messages: [] } }, m.chat)
+					method2Success = true
+				} catch {}
+
+				// Method 3: chatModify delete (archive + clear)
+				let method3Success = false
 				try {
 					await nimesha.chatModify({ delete: true, lastMessages: [{ key: m.key, messageTimestamp: m.timestamp }] }, m.chat)
-					clearSuccess = true
-				} catch (e1) {
-					// Method 1 failed, try Method 2
-					try {
-						await nimesha.chatModify({ clear: { messages: [{ id: m.key.id, fromMe: m.key.fromMe, timestamp: m.timestamp }] } }, m.chat)
-						clearSuccess = true
-					} catch (e2) {
-						clearSuccess = false
-					}
-				}
+					method3Success = true
+				} catch {}
 
-				if (clearSuccess) {
-					m.reply('පණිවිඩ සාර්ථකව ඉවත් කෙරිණ ✅')
-				} else {
-					m.reply('Chat මකාදැමීම අසාර්ථකයි! ❌')
+				const anySuccess = method1Success || method2Success || method3Success
+				try {
+					await nimesha.sendMessage(m.chat, {
+						text: anySuccess
+							? `✅ *සාර්ථකයි!*\n━━━━━━━━━━━━━━━━━━━━━━\n🗑️ *${deletedCount}* පණිවිඩ ඉවත් කෙරිණ\n━━━━━━━━━━━━━━━━━━━━━━`
+							: '❌ *Chat මකාදැමීම අසාර්ථකයි!*',
+						edit: statusMsg.key
+					})
+				} catch {
+					m.reply(anySuccess ? `✅ ${deletedCount} පණිවිඩ ඉවත් කෙරිණ` : '❌ Chat මකාදැමීම අසාර්ථකයි!')
 				}
 			}
 			break

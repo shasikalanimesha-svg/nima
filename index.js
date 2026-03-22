@@ -85,6 +85,7 @@
     (function _autoPip() {
         const pipPackages = [
             'speedtest-cli',
+            'yt-dlp',
         ];
 
         function _getPipCmd() {
@@ -121,7 +122,65 @@
             }
         }
     })();
+
     // ═══════════════════════════════════════════════════════
+    // 🔧 System Tools Auto-Install (ffmpeg, yt-dlp binary)
+    // ═══════════════════════════════════════════════════════
+    (function _autoSystemTools() {
+        // yt-dlp binary check — pip install කළාට PATH හි නැත්නම් fallback
+        function _checkCmd(cmd) {
+            try { execSync(`which ${cmd}`, { stdio: 'pipe', timeout: 5000 }); return true; } catch { return false; }
+        }
+
+        // ffmpeg check — Termux: pkg install ffmpeg
+        if (!_checkCmd('ffmpeg')) {
+            console.log('📦 [system] ffmpeg හමු නොවිණී — install try කරමින්...');
+            try {
+                execSync('pkg install ffmpeg -y', { stdio: 'pipe', timeout: 120000, shell: true });
+                console.log('✅ [system] ffmpeg installed');
+            } catch {
+                try {
+                    execSync('apt-get install -y ffmpeg', { stdio: 'pipe', timeout: 120000, shell: true });
+                    console.log('✅ [system] ffmpeg installed (apt)');
+                } catch (e) {
+                    console.log('⚠️ [system] ffmpeg auto-install failed — manual: pkg install ffmpeg');
+                }
+            }
+        } else {
+            console.log('✅ [system] ffmpeg OK');
+        }
+
+        // yt-dlp binary check
+        if (!_checkCmd('yt-dlp')) {
+            console.log('📦 [system] yt-dlp binary හමු නොවිණී — install try කරමින්...');
+            try {
+                execSync('pip3 install yt-dlp --break-system-packages -q', { stdio: 'pipe', timeout: 120000, shell: true });
+                console.log('✅ [system] yt-dlp installed via pip3');
+            } catch {
+                try {
+                    // Direct binary download fallback
+                    execSync('curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp && chmod a+rx /usr/local/bin/yt-dlp', { stdio: 'pipe', timeout: 120000, shell: true });
+                    console.log('✅ [system] yt-dlp installed via binary download');
+                } catch (e) {
+                    console.log('⚠️ [system] yt-dlp auto-install failed — manual: pip install yt-dlp');
+                }
+            }
+        } else {
+            // yt-dlp update කරනවා — outdated නම් YT block කරයි
+            console.log('🔄 [system] yt-dlp updating...');
+            try {
+                execSync('yt-dlp -U --no-color', { stdio: 'pipe', timeout: 60000 });
+                console.log('✅ [system] yt-dlp up to date');
+            } catch {
+                try {
+                    execSync('pip3 install yt-dlp --upgrade --break-system-packages -q', { stdio: 'pipe', timeout: 120000, shell: true });
+                    console.log('✅ [system] yt-dlp upgraded via pip3');
+                } catch (e) {
+                    console.log('⚠️ [system] yt-dlp update failed — continuing with current version');
+                }
+            }
+        }
+    })();
 
     const REPO_URL = 'https://github.com/shasikalanimesha-svg/nima.git';
 
