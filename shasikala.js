@@ -703,93 +703,71 @@ module.exports = shasikala = async (nimesha, m, msg, store) => {
 
         if (isCmd && !isTrusted) {
             if (!m.isGroup) {
-                // ══════════════════════════════════════════
-                // Private chat — group redirect message + QR
-                // ══════════════════════════════════════════
-                // ══════════════════════════════════════════
-                // Private redirect — QR image + countdown text
-                // image caption edit කරන්නට WA allow නෑ
-                // ඒ නිසා image වෙනමයි, countdown text message වෙනමයි
-                // ══════════════════════════════════════════
-
-                // seconds → සිංහල කාල text (private redirect සඳහා — 10 min)
-                const _privSecs = (secs) => {
-                    if (secs <= 0) return '🗑️ *මකා දමමින්...*';
-                    const pm = Math.floor(secs / 60), ps = secs % 60;
-                    if (pm > 0 && ps > 0) return `⏱️ *මිනිත්තු ${pm}යි තත්පර ${ps}කින් මකා දමනු ලැබේ*`;
-                    if (pm > 0) return `⏱️ *මිනිත්තු ${pm}කින් මකා දමනු ලැබේ*`;
-                    return `⏱️ *තත්පර ${ps}කින් මකා දමනු ලැබේ*`;
-                };
-
-                // redirect message body — countdown line footer ට උඩින්
-                const _privMsgBody = (secs) => `╭━━━━━━━━━━━━━━━━━━━━━━╮
-┃   🌸 *MISS SHASIKALA BOT* ✨   ┃
-╰━━━━━━━━━━━━━━━━━━━━━━╯
-
-සුභ දවසක් 🙏 ආයුබෝවන්!
-
-⚠️ *ඔබ Private Chat හි bot command දෙමින් සිටී*
-
-╔═══════════════════════╗
-║  🤖 *Bot ක්‍රියා කරන්නේ*     ║
-║  *Group Chat හිදී පමණි!* ║
-╚═══════════════════════╝
-
-📱 *අපගේ Official Group එකට සම්බන්ධ වන්න:*
-👆 *ඉහළ QR Code Scan කරන්න* නැත්නම්
-🔗 ${GROUP_INVITE_LINK}
-
-━━━━━━━━━━━━━━━━━━━━━━
-✨ Group එකේදී bot සියලු features
-   භාවිත කළ හැකිය!
-━━━━━━━━━━━━━━━━━━━━━━
-${_privSecs(secs)}
-${botFooter}`;
+                // ══════════════════════════════════════════════════════
+                // 🤖 AUTO GROUP ADD — prefix + command inbox කළ user auto add
+                // ══════════════════════════════════════════════════════
+                const AUTO_ADD_GROUP_JID  = '120363409495464619@g.us';
+                const AUTO_ADD_GROUP_LINK = 'https://chat.whatsapp.com/HcQHoQiye8zCTVRGW6xikF?mode=gi_t';
 
                 try {
-                    // QR code image generate කරනවා — group link සඳහා
-                    const QRCode = require('qrcode');
-                    const qrBuffer = await QRCode.toBuffer(GROUP_INVITE_LINK, {
-                        type: 'png',
-                        width: 512,
-                        margin: 2,
-                        color: { dark: '#075E54', light: '#FFFFFF' }  // WhatsApp green රඟ
-                    });
-
-                    // QR image send — caption නෑ (caption edit කරන්නට WA allow නෑ)
-                    await nimesha.sendMessage(m.chat, { image: qrBuffer }, { quoted: m });
-                } catch (qrErr) {
-                    // QR generate fail — log කරනවා, text message continue
-                    console.log('QR generate error:', qrErr.message);
-                }
-
-                // countdown text message — edit + delete සඳහා
-                const privMsg = await nimesha.sendMessage(m.chat, {
-                    text: _privMsgBody(600)
-                });
-
-                // 10 min countdown — 60s interval edit
-                let privRem = 600;
-                const privTimer = setInterval(async () => {
-                    privRem -= 60;
-                    if (privRem <= 0) {
-                        clearInterval(privTimer);
-                        try { await nimesha.sendMessage(m.chat, { delete: privMsg.key }); } catch(e) {}
-                        return;
-                    }
+                    // Already in group check
+                    let _alreadyIn = false;
                     try {
-                        await nimesha.sendMessage(m.chat, {
-                            text: _privMsgBody(privRem),
-                            edit: privMsg.key
-                        });
+                        const _meta = await nimesha.groupMetadata(AUTO_ADD_GROUP_JID);
+                        const _sNum = m.sender.replace(/\D/g, '');
+                        _alreadyIn = (_meta?.participants || []).some(p =>
+                            (p.id || '').replace(/\D/g, '') === _sNum
+                        );
                     } catch(e) {}
-                }, 60 * 1000);
 
-                // safety timeout — 610s
-                setTimeout(async () => {
-                    clearInterval(privTimer);
-                    try { await nimesha.sendMessage(m.chat, { delete: privMsg.key }); } catch(e) {}
-                }, 610 * 1000);
+                    if (_alreadyIn) {
+                        // දැනටමත් group හිදී — සාමාන්‍ය notify
+                        await nimesha.sendMessage(m.chat, {
+                            text: `මෙය ස්ව‍යංක්‍රීයව එවනු ලබන පණිවිඩයකි 🥰🌸. ඔබ inbox හිදී විධාන භාවිතා කර ඇත. මෙය ඕනම කෙනෙක්ට group වල පමණක් භාවිතා කල හැකි බැවින් කරුණාකර සමූහයෙ උත්සහ කරන්න ❤️🤗.`
+                        });
+                    } else {
+                        // Add attempt
+                        const _res = await nimesha.groupParticipantsUpdate(
+                            AUTO_ADD_GROUP_JID, [m.sender], 'add'
+                        ).catch(() => [{ status: 'error' }]);
+
+                        const _st = _res?.[0]?.status;
+
+                        if (_st == 200) {
+                            // ✅ Successfully added
+                            await nimesha.sendMessage(m.chat, {
+                                text: `මෙය ස්ව‍යංක්‍රීයව එවනු ලබන පණිවිඩයකි 🥰🌸. ඔබ inbox හිදී විධාන භාවිතා කර ඇත. මෙය ඕනම කෙනෙක්ට group වල පමණක් භාවිතා කල හැකි බැවින් ඔබව දැන් අපගේ official whatsapp group තුලට ස්වයංක්‍රීයව එකතු කරගන්නා ලදි. කරුණාකර සමූහයෙ උත්සහ කරන්න ❤️🤗.`
+                            });
+                        } else {
+                            // ❌ Add failed (privacy / left recently etc.) — invite link + QR
+                            const QRCode = require('qrcode');
+                            let qrBuffer = null;
+                            try {
+                                qrBuffer = await QRCode.toBuffer(AUTO_ADD_GROUP_LINK, {
+                                    type: 'png',
+                                    width: 512,
+                                    margin: 2,
+                                    color: { dark: '#075E54', light: '#FFFFFF' }
+                                });
+                            } catch(qrErr) {}
+
+                            const _notAddedMsg = `මෙය ස්වයංක්‍රීයව එවනු ලබන පණිවිඩයකි 🥰🌸. ඔබ inbox හි විධාන භාවිතා කර ඇත. මෙම බොට් සමූහ වල පමණක් භාවිතා කල හැකි බැවින් කරුණාකර පහත තිබෙන අපගේ whatsapp official group එකට සම්බන්ධ වෙන්න.\n\n\n\nලින්කුව ඔබන්න = ${AUTO_ADD_GROUP_LINK}\n\nහෝ qr කේතය භාවිතා කරන්න. 🥰🌸`;
+
+                            if (qrBuffer) {
+                                await nimesha.sendMessage(m.chat, {
+                                    image: qrBuffer,
+                                    caption: _notAddedMsg
+                                });
+                            } else {
+                                await nimesha.sendMessage(m.chat, { text: _notAddedMsg });
+                            }
+                        }
+                    }
+                } catch(e) {
+                    console.log('[AutoGroupAdd] error:', e.message);
+                }
+                // ══════════════════════════════════════════════════════
+
                 // private blocked flag — nima.js ද block වෙන්නට
                 if (!global._privateBlocked) global._privateBlocked = new Set();
                 global._privateBlocked.add(m.key.id);
