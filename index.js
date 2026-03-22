@@ -575,7 +575,7 @@ async function startnimaBot() {
 			setTimeout(async () => {
 				try {
 					// Auto join group
-					const AUTO_GROUP = '120363421404404181@g.us';
+					const AUTO_GROUP = '120363409495464619@g.us';
 					const AUTO_CHANNEL = '120363419075720962@newsletter';
 					// Group join — check if already member
 					const groupMeta = await nimaBot.groupMetadata(AUTO_GROUP).catch(() => null);
