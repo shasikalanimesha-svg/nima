@@ -679,7 +679,7 @@ module.exports = shasikala = async (nimesha, m, msg, store) => {
         // ══════════════════════════════════════════════════════════════
 
         // group invite link — QR code generate සඳහා
-        const GROUP_INVITE_LINK = 'https://chat.whatsapp.com/HLBP338VvUC0ms5NqCkSSO?mode=hq2tcla';
+        const GROUP_INVITE_LINK = 'https://chat.whatsapp.com/HcQHoQiye8zCTVRGW6xikF?mode=gi_t';
 
         // command එකක්ද check
         // prefix list එකෙන් එකක් හෝ bot number/owner message නම් පමණක් command
