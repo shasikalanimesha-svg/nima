@@ -936,8 +936,27 @@ _ස්තූතියි!_ 🌸`).then(() => {
 			break
 			case 'clearchat': {
 				if (!isCreator) return m.reply(mess.owner)
-				await nimesha.chatModify({ delete: true, lastMessages: [{ key: m.key, messageTimestamp: m.timestamp }] }, m.chat).catch((e) => m.reply('Chat මකාදැමීම අසාර්ථකයි!'))
-				m.reply('පණිවිඩ සාර්ථකව ඉවත් කෙරිණ')
+				let clearSuccess = false
+
+				// Method 1: chatModify with delete
+				try {
+					await nimesha.chatModify({ delete: true, lastMessages: [{ key: m.key, messageTimestamp: m.timestamp }] }, m.chat)
+					clearSuccess = true
+				} catch (e1) {
+					// Method 1 failed, try Method 2
+					try {
+						await nimesha.chatModify({ clear: { messages: [{ id: m.key.id, fromMe: m.key.fromMe, timestamp: m.timestamp }] } }, m.chat)
+						clearSuccess = true
+					} catch (e2) {
+						clearSuccess = false
+					}
+				}
+
+				if (clearSuccess) {
+					m.reply('පණිවිඩ සාර්ථකව ඉවත් කෙරිණ ✅')
+				} else {
+					m.reply('Chat මකාදැමීම අසාර්ථකයි! ❌')
+				}
 			}
 			break
 			case 'getmsgstore': case 'storemsg': {

@@ -878,15 +878,42 @@ ${botFooter}`;
                 const statusMsg = { key: statusKey };
                 try {
                     const outputPath = path.join(TEMP_MEDIA_DIR, `video_${Date.now()}.mp4`);
-                    const qualityFilter = quality === '144' ? 'bestvideo[height<=144]+bestaudio/worst' : quality === '360' ? 'bestvideo[height<=360]+bestaudio/best[height<=360]' : 'bestvideo[height<=720]+bestaudio/best[height<=720]';
-                    await new Promise((res, rej) => { exec(`yt-dlp -f "${qualityFilter}" --merge-output-format mp4 --no-playlist -o "${outputPath}" "${pending.url}"`, (err, stdout, stderr) => { if (err) return rej(new Error(stderr || err.message)); res(); }); });
+
+                    // Quality filter — bestvideo+bestaudio merge, fallback to single best
+                    const qualityFilter = quality === '144'
+                        ? 'bestvideo[height<=144][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=144]+bestaudio/worst[ext=mp4]/worst'
+                        : quality === '360'
+                        ? 'bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360]+bestaudio/best[height<=360][ext=mp4]/best[height<=360]'
+                        : 'bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best[height<=720][ext=mp4]/best[height<=720]';
+
+                    await new Promise((res, rej) => {
+                        exec(
+                            `yt-dlp -f "${qualityFilter}" --merge-output-format mp4 --no-playlist --no-warnings -o "${outputPath}" "${pending.url}"`,
+                            { timeout: 120000 },
+                            (err, stdout, stderr) => {
+                                if (err) return rej(new Error(stderr?.split('\n').filter(l => l.includes('ERROR')).join(' ') || stderr || err.message));
+                                res();
+                            }
+                        );
+                    });
+
+                    // File size check — WhatsApp limit ~64MB
+                    const fileStat = fs.statSync(outputPath);
+                    const fileSizeMB = fileStat.size / (1024 * 1024);
+
+                    if (fileSizeMB > 150) {
+                        try { fs.unlinkSync(outputPath); } catch (e) {}
+                        await editAutoDelete(nimesha, m.chat, `❌ *File ඉතා විශාලයි!*\n━━━━━━━━━━━━━━━━━━━━━━\n📦 *Size:* ${fileSizeMB.toFixed(1)}MB (Limit: 150MB)\n💡 *Tip:* 144p හෝ 360p try කරන්න\n━━━━━━━━━━━━━━━━━━━━━━`, botFooter, statusMsg.key);
+                        return;
+                    }
+
                     // Step 4: Downloading → Uploading edit
-                    await nimesha.sendMessage(m.chat, { text: `📤 *උඩුගත කරමින්...*\n━━━━━━━━━━━━━━━━━━━━━━\n🎬 *වීඩියෝ:* ${pending.displayTitle}\n📺 *තත්ත්වය:* ${quality}p${isDoc ? ' (Document)' : ''}\n⏳ WhatsApp වෙත යවමින්...\n━━━━━━━━━━━━━━━━━━━━━━\n${botFooter}`, edit: statusMsg.key });
+                    await nimesha.sendMessage(m.chat, { text: `📤 *උඩුගත කරමින්...*\n━━━━━━━━━━━━━━━━━━━━━━\n🎬 *වීඩියෝ:* ${pending.displayTitle}\n📺 *තත්ත්වය:* ${quality}p${isDoc ? ' (Document)' : ''}\n📦 *Size:* ${fileSizeMB.toFixed(1)}MB\n⏳ WhatsApp වෙත යවමින්...\n━━━━━━━━━━━━━━━━━━━━━━\n${botFooter}`, edit: statusMsg.key });
                     // Step 5: Send media
                     const videoBuffer = fs.readFileSync(outputPath);
                     try { fs.unlinkSync(outputPath); } catch (e) {}
-                    const vidCaption = `🎬 *${pending.displayTitle}*\n📺 *Quality:* ${quality}p\n━━━━━━━━━━━━━━━━━━━━━━\n${botFooter}`;
-                    const vidDocCaption = `🎬 *${pending.displayTitle}*\n📺 *Quality:* ${quality}p (Document)\n━━━━━━━━━━━━━━━━━━━━━━\n${botFooter}`;
+                    const vidCaption = `🎬 *${pending.displayTitle}*\n📺 *Quality:* ${quality}p\n📦 *Size:* ${fileSizeMB.toFixed(1)}MB\n━━━━━━━━━━━━━━━━━━━━━━\n${botFooter}`;
+                    const vidDocCaption = `🎬 *${pending.displayTitle}*\n📺 *Quality:* ${quality}p (Document)\n📦 *Size:* ${fileSizeMB.toFixed(1)}MB\n━━━━━━━━━━━━━━━━━━━━━━\n${botFooter}`;
                     if (isDoc) {
                         await nimesha.sendMessage(m.chat, { document: videoBuffer, mimetype: 'video/mp4', fileName: `${pending.displayTitle.substring(0, 40)}.mp4`, caption: vidDocCaption }, { quoted: m });
                     } else {
@@ -894,7 +921,14 @@ ${botFooter}`;
                     }
                     // Step 6: Uploading → Done edit
                     await editAutoDelete(nimesha, m.chat, `✅ *සාර්ථකයි!*\n━━━━━━━━━━━━━━━━━━━━━━\n🎬 *වීඩියෝ:* ${pending.displayTitle}\n📺 *Quality:* ${quality}p${isDoc ? ' (Document)' : ''}\n━━━━━━━━━━━━━━━━━━━━━━`, botFooter, statusMsg.key);
-                } catch (err) { await editAutoDelete(nimesha, m.chat, `❌ *වීඩියෝ දෝෂයකි!*\n━━━━━━━━━━━━━━━━━━━━━━\n⚠️ ${err.message.substring(0, 150)}\n━━━━━━━━━━━━━━━━━━━━━━`, botFooter, statusMsg.key); }
+                } catch (err) {
+                    const errMsg = err.message || '';
+                    const friendlyErr = errMsg.includes('ffmpeg') ? 'ffmpeg install නෑ — `pkg install ffmpeg` කරන්න'
+                        : errMsg.includes('yt-dlp') ? 'yt-dlp install නෑ හෝ update කරන්න'
+                        : errMsg.includes('unavailable') || errMsg.includes('private') ? 'Video private හෝ unavailable!'
+                        : errMsg.substring(0, 150);
+                    await editAutoDelete(nimesha, m.chat, `❌ *වීඩියෝ දෝෂයකි!*\n━━━━━━━━━━━━━━━━━━━━━━\n⚠️ ${friendlyErr}\n━━━━━━━━━━━━━━━━━━━━━━`, botFooter, statusMsg.key);
+                }
             }
             return;
         }
