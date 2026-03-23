@@ -35,6 +35,37 @@
       ],
       "autostatusreact": false,
       "autorecording": false
+    },
+    "94726800969@s.whatsapp.net": {
+      "lang": "si",
+      "limit": 0,
+      "money": 0,
+      "status": 0,
+      "join": false,
+      "public": true,
+      "anticall": false,
+      "original": true,
+      "readsw": false,
+      "autobio": false,
+      "autoread": false,
+      "antispam": false,
+      "autotyping": false,
+      "grouponly": false,
+      "multiprefix": false,
+      "privateonly": false,
+      "didyoumean": true,
+      "autostatus": false,
+      "antidelete": false,
+      "author": "Nimesha Madhushan",
+      "autobackup": false,
+      "botname": "Miss Shasikala",
+      "packname": "Miss Shasikala",
+      "template": "documentMessage",
+      "owner": [
+        "94726800969"
+      ],
+      "autostatusreact": false,
+      "autorecording": false
     }
   },
   "cmd": {},
