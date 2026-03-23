@@ -32,7 +32,7 @@ const { generateWAMessageContent, getContentType } = require('baileys');
 const { UguuSe } = require('./lib/uploader');
 const TicTacToe = require('./lib/tictactoe');
 const { antiSpam } = require('./src/antispam');
-const { ytMp4, ytMp3 } = require('./lib/scraper');
+const { ytMp4, ytMp3, tiktokDownload, igDownload, fbDownload } = require('./lib/scraper');
 const templateMenu = require('./lib/template_menu');
 const { toAudio, toPTT, toVideo } = require('./lib/converter');
 const { GroupUpdate, LoadDataBase } = require('./src/message');
@@ -3476,93 +3476,99 @@ _ස්තූතියි!_ 🌸`).then(() => {
 				if (!isLimit) return m.reply(mess.limit)
 				if (!text) return m.reply(`උදාහරණ: ${prefix + command} Instagram URL`)
 				if (!text.includes('instagram.com')) return m.reply('URL Instagram ප්‍රතිඵලය ඇතුළත් නෑ!')
+				const statusMsg = await m.reply(`⬇ *බාගනිමින්...*\n━━━━━━━━━━━━━━━━━━━━━━\n📷 *Instagram:* ${text.substring(0, 50)}...\n━━━━━━━━━━━━━━━━━━━━━━`)
 				try {
-					let statusMsg = await m.reply(`⬇ *බාගනිමින්...*\n━━━━━━━━━━━━━━━━━━━━━━\n📷 *Instagram:* ${text.substring(0,50)}...\n━━━━━━━━━━━━━━━━━━━━━━`)
-					let hasil = await fetchApi('/download/instagram', { url: text })
-					if(hasil.result.urls.length > 1) {
+					const hasil = await igDownload(text)
+					if (hasil.type === 'album') {
 						await nimesha.sendAlbumMessage(m.chat, {
-							album: hasil.result.urls.map(a => (a.is_video ? { video: { url: a.url }} : { image: { url: a.url }})),
-							caption: hasil.result.caption
-						}, { quoted: m });
-					} else if(hasil.result.urls.length == 1) {
-						m.reply({ image: { url: hasil.result.urls[0].url }, caption: hasil.result.caption });
-					} else m.reply('Post ලබා ගත නොහැකිය හෝ Private!')
+							album: hasil.items.map(a => (a.is_video ? { video: { url: a.url } } : { image: { url: a.url } })),
+							caption: hasil.caption || ''
+						}, { quoted: m })
+					} else if (hasil.type === 'video') {
+						await m.reply({ video: { url: hasil.url }, caption: hasil.caption || '' })
+					} else {
+						await m.reply({ image: { url: hasil.url }, caption: hasil.caption || '' })
+					}
+					await nimesha.sendMessage(m.chat, { text: '✅ *සාර්ථකයි!*', edit: statusMsg.key }).catch(() => {})
 					setLimit(m, db)
 				} catch (e) {
-					console.log(e)
-					m.reply('Post ලබා ගත නොහැකිය හෝ Private!')
+					console.log('[IG DL]', e.message)
+					await nimesha.sendMessage(m.chat, { text: '❌ Post ලබා ගත නොහැකිය හෝ Private!', edit: statusMsg.key }).catch(() => {})
 				}
 			}
 			break
 			case 'tiktok': case 'tiktokdown': case 'ttdown': case 'ttdl': case 'tt': case 'ttmp4': case 'ttvideo': case 'tiktokmp4': case 'tiktokvideo': {
 				if (!isLimit) return m.reply(mess.limit)
 				if (!text) return m.reply(`උදාහරණ: ${prefix + command} TikTok URL`)
-				if (!text.includes('tiktok.com')) return m.reply('URL TikTok ප්‍රතිඵලය ඇතුළත් නෑ!')
+				if (!text.includes('tiktok.com') && !text.includes('vm.tiktok') && !text.includes('vt.tiktok')) return m.reply('URL TikTok ප්‍රතිඵලය ඇතුළත් නෑ!')
+				const ttVidStatus = await m.reply(`⬇ *බාගනිමින්...*\n━━━━━━━━━━━━━━━━━━━━━━\n🎵 *TikTok Video:* ${text.substring(0, 45)}...\n━━━━━━━━━━━━━━━━━━━━━━`)
 				try {
-					const hasil = await fetchApi('/download/tiktok', { url: text })
-					m.reply(mess.wait)
-					if (hasil.result.download.type == "video") {
-						await m.reply({ video: { url: hasil.result.download?.video?.nowm_hd || hasil.result.download?.video?.nowm }, caption: `*📍Title:* ${hasil.result.desc || '-'}\n*🕓Create At:* ${hasil.result.create_time}\n*🎃Author:* ${hasil.result.author.nickනාමය} (@${hasil.result.author.unique_id})` });
-					} else if (hasil.result.download.type == "images") {
+					const hasil = await tiktokDownload(text)
+					if (hasil.type === 'slideshow') {
 						await nimesha.sendAlbumMessage(m.chat, {
-							album: hasil.result.download.images.map(a => ({ image: { url: a.url }})),
-							caption: `*📍Title:* ${hasil.result.desc || '-'}\n*🕓Create At:* ${hasil.result.create_time}\n*🎃Author:* ${hasil.result.author.nickනාමය} (@${hasil.result.author.unique_id})`
-						}, { quoted: m });
+							album: hasil.items.map(u => ({ image: { url: u } })),
+							caption: `*📍 ${hasil.title || ''}*\n*🎃 ${hasil.author || ''}*`
+						}, { quoted: m })
 					} else {
-						return m.reply('Url නැහැ Valid!')
+						await m.reply({
+							video: { url: hasil.url },
+							caption: `*📍 ${hasil.title || 'TikTok Video'}*\n*🎃 ${hasil.author || ''}*`
+						})
 					}
+					await nimesha.sendMessage(m.chat, { text: '✅ *සාර්ථකයි!*', edit: ttVidStatus.key }).catch(() => {})
 					setLimit(m, db)
 				} catch (e) {
-					console.log(e)
-					m.reply('අසාර්ථකයි/URL වලංගු නොවේ!')
+					console.log('[TT DL]', e.message)
+					await nimesha.sendMessage(m.chat, { text: '❌ TikTok download අසාර්ථකයි!', edit: ttVidStatus.key }).catch(() => {})
 				}
 			}
 			break
 			case 'ttmp3': case 'tiktokmp3': case 'ttaudio': case 'tiktokaudio': {
 				if (!isLimit) return m.reply(mess.limit)
 				if (!text) return m.reply(`උදාහරණ: ${prefix + command} TikTok URL`)
-				if (!text.includes('tiktok.com')) return m.reply('URL TikTok ප්‍රතිඵලය ඇතුළත් නෑ!')
+				if (!text.includes('tiktok.com') && !text.includes('vm.tiktok') && !text.includes('vt.tiktok')) return m.reply('URL TikTok ප්‍රතිඵලය ඇතුළත් නෑ!')
+				const ttAudStatus = await m.reply(`⬇ *බාගනිමින්...*\n━━━━━━━━━━━━━━━━━━━━━━\n🎵 *TikTok Audio:* ${text.substring(0, 45)}...\n━━━━━━━━━━━━━━━━━━━━━━`)
 				try {
-					const hasil = await fetchApi('/download/tiktok', { url: text });
-					m.reply(mess.wait)
+					const hasil = await tiktokDownload(text)
 					await m.reply({
-						audio: { url: hasil.result.download.music },
+						audio: { url: hasil.audio || hasil.url },
 						mimetype: 'audio/mpeg',
 						contextInfo: {
 							externalAdReply: {
-								title: 'TikTok • ' + hasil.result.author.nickනාමය,
-								body: hasil.result.statistics.like + ' suka, ' + hasil.result.statistics.command + ' komentar. ' + hasil.result.desc,
+								title: 'TikTok • ' + (hasil.author || ''),
+								body: hasil.title || '',
 								previewType: 'PHOTO',
-								thumbnailUrl: hasil.result.download?.music_info?.cover_hd || hasil.result.download.music_info.cover_medium,
+								thumbnailUrl: hasil.thumb || '',
 								mediaType: 1,
 								renderLargerThumbnail: true,
 								sourceUrl: text
 							}
 						}
 					})
+					await nimesha.sendMessage(m.chat, { text: '✅ *සාර්ථකයි!*', edit: ttAudStatus.key }).catch(() => {})
 					setLimit(m, db)
 				} catch (e) {
-					m.reply('අසාර්ථකයි/URL වලංගු නොවේ!')
+					console.log('[TT MP3]', e.message)
+					await nimesha.sendMessage(m.chat, { text: '❌ TikTok audio download අසාර්ථකයි!', edit: ttAudStatus.key }).catch(() => {})
 				}
 			}
 			break
 			case 'fb': case 'fbdl': case 'fbdown': case 'facebook': case 'facebookdl': case 'facebookdown': case 'fbdownload': case 'fbmp4': case 'fbvideo': {
 				if (!isLimit) return m.reply(mess.limit)
 				if (!text) return m.reply(`උදාහරණ: ${prefix + command} Facebook URL`)
-				if (!text.includes('facebook.com')) return m.reply('URL Facebook ප්‍රතිඵලය ඇතුළත් නෑ!')
+				if (!text.includes('facebook.com') && !text.includes('fb.watch')) return m.reply('URL Facebook ප්‍රතිඵලය ඇතුළත් නෑ!')
+				const fbStatus = await m.reply(`⬇ *බාගනිමින්...*\n━━━━━━━━━━━━━━━━━━━━━━\n📸 *Facebook:* ${text.substring(0, 50)}...\n━━━━━━━━━━━━━━━━━━━━━━`)
 				try {
-					let statusMsg = await m.reply(`⬇ *බාගනිමින්...*\n━━━━━━━━━━━━━━━━━━━━━━\n📸 *Facebook:* ${text.substring(0,50)}...\n━━━━━━━━━━━━━━━━━━━━━━`)
-					const hasil = await fetchApi('/download/facebook', { url: text });
-					if (!hasil.result.hd && !hasil.result.sd) {
-						await nimesha.sendMessage(m.chat, { text: '❌ Video හොයාගත නොහැකිය!' }, { quoted: m, edit: statusMsg.key })
-					} else {
-						await nimesha.sendMessage(m.chat, { text: `⬇️ *බාගනිමින්...*\n🎥 *${hasil.result.title || 'Facebook Video'}*` }, { quoted: m, edit: statusMsg.key })
-						await nimesha.sendFileUrl(m.chat, hasil.result.hd || hasil.result.sd, `*🎐Title:* ${hasil.result.title}`, m);
-						await nimesha.sendMessage(m.chat, { text: '✅ *සාර්තකයි!* Facebook Video බාගය හමුනලා.' }, { quoted: m, edit: statusMsg.key })
-					}
+					const hasil = await fbDownload(text)
+					const videoUrl = hasil.hd || hasil.sd
+					if (!videoUrl) throw new Error('no url')
+					await nimesha.sendMessage(m.chat, { text: `⬇️ *Sending...*\n🎥 *${hasil.title || 'Facebook Video'}*`, edit: fbStatus.key }).catch(() => {})
+					await nimesha.sendFileUrl(m.chat, videoUrl, `*🎐 ${hasil.title || 'Facebook Video'}*`, m)
+					await nimesha.sendMessage(m.chat, { text: '✅ *සාර්ථකයි!* Facebook Video හමුවිය.', edit: fbStatus.key }).catch(() => {})
 					setLimit(m, db)
 				} catch (e) {
-					m.reply('Facebook Downloader Server offline!')
+					console.log('[FB DL]', e.message)
+					await nimesha.sendMessage(m.chat, { text: '❌ Facebook download අසාර්ථකයි!', edit: fbStatus.key }).catch(() => {})
 				}
 			}
 			break
