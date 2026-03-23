@@ -664,18 +664,10 @@ module.exports = shasikala = async (nimesha, m, msg, store) => {
         // bot ගෙ own edited messages process කළොත් timer loop එකක් හැදෙනවා
         // ══════════════════════════════════════════════════════════════
         const msgType = m.type || '';
-        // bot ගෙ edit message, protocol message, status — skip
+        // bot ගෙ edit message, protocol message — skip
         if (m.fromMe && /editedMessage|protocolMessage|reactionMessage/i.test(msgType)) return;
-        // bot ගෙ ALL own messages — group + private skip (loop prevent)
-        // owner self-chat commands: owner number == bot number scenario only
-        if (m.fromMe) {
-            const bodyText = (m.body || m.text || '').trim();
-            // Group හිදී bot ගෙ own messages සම්පූර්ණයෙන් skip (status msg loop prevent)
-            if (m.isGroup) return;
-            // Private: prefix නැතිනම් skip
-            if (!bodyText.startsWith(prefix)) return;
-            // prefix ඇත — owner private command = process continue
-        }
+        // 🛑 Bot ගෙ ALL own messages SKIP — group + self-chat loop prevent
+        if (m.fromMe) return;
 
         // ══════════════════════════════════════════════════════════════
         // 🔒 GROUP ONLY + PRIVATE REDIRECT + USER MSG AUTO DELETE

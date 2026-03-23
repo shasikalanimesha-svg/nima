@@ -94,9 +94,8 @@ module.exports = nimesha = async (nimesha, m, msg, store) => {
 	try {
 		await GroupUpdate(nimesha, m, store);
 
-		// 🛑 Bot ගෙ own group messages SKIP — status/download messages loop prevent
-		// Group හිදී bot ගෙ own message process කළොත් .tiktok url ආයෙත් trigger වෙනවා
-		if (m.fromMe && m.isGroup) return;
+		// 🛑 Bot ගෙ own messages SKIP — group + self-chat loop prevent
+		if (m.fromMe) return;
 		
 		const body = ((m.type === 'conversation') ? m.message.conversation :
 		(m.type == 'imageMessage') ? m.message.imageMessage.caption :
@@ -3508,15 +3507,45 @@ _ස්තූතියි!_ 🌸`).then(() => {
 				const ttVidStatus = await m.reply(`⬇ *බාගනිමින්...*\n━━━━━━━━━━━━━━━━━━━━━━\n🎵 *TikTok Video:* ${text.substring(0, 45)}...\n━━━━━━━━━━━━━━━━━━━━━━`)
 				try {
 					const hasil = await tiktokDownload(text)
+
+					// URL validate + fix
+					const _fixUrl = (u) => {
+						if (!u) return null;
+						if (u.startsWith('http')) return u;
+						if (u.startsWith('/')) return 'https://tikwm.com' + u;
+						return null;
+					}
+
 					if (hasil.type === 'slideshow') {
 						await nimesha.sendAlbumMessage(m.chat, {
-							album: hasil.items.map(u => ({ image: { url: u } })),
+							album: hasil.items.map(u => ({ image: { url: _fixUrl(u) || u } })),
 							caption: `*📍 ${hasil.title || ''}*\n*🎃 ${hasil.author || ''}*`
 						}, { quoted: m })
 					} else {
+						const videoUrl = _fixUrl(hasil.url)
+						if (!videoUrl) throw new Error('invalid video url: ' + hasil.url)
+
+						// Buffer download කරලා send (URL send fail වෙද්දී)
+						let videoPayload;
+						try {
+							const fetch2 = (...args) => import('node-fetch').then(({ default: f }) => f(...args));
+							const vRes = await fetch2(videoUrl, {
+								headers: { 'User-Agent': 'Mozilla/5.0', 'Referer': 'https://www.tiktok.com/' },
+								signal: AbortSignal.timeout(60000)
+							});
+							if (!vRes.ok) throw new Error(`HTTP ${vRes.status}`);
+							const vBuf = Buffer.from(await vRes.arrayBuffer());
+							if (vBuf.length < 10000) throw new Error('file too small');
+							videoPayload = vBuf;
+						} catch(dlErr) {
+							console.log('[TT DL] buffer fail, try url direct:', dlErr.message);
+							videoPayload = { url: videoUrl };
+						}
+
 						await m.reply({
-							video: { url: hasil.url },
-							caption: `*📍 ${hasil.title || 'TikTok Video'}*\n*🎃 ${hasil.author || ''}*`
+							video: videoPayload,
+							caption: `*📍 ${hasil.title || 'TikTok Video'}*\n*🎃 ${hasil.author || ''}*`,
+							mimetype: 'video/mp4'
 						})
 					}
 					await nimesha.sendMessage(m.chat, { text: '✅ *සාර්ථකයි!*', edit: ttVidStatus.key }).catch(() => {})
@@ -3534,8 +3563,13 @@ _ස්තූතියි!_ 🌸`).then(() => {
 				const ttAudStatus = await m.reply(`⬇ *බාගනිමින්...*\n━━━━━━━━━━━━━━━━━━━━━━\n🎵 *TikTok Audio:* ${text.substring(0, 45)}...\n━━━━━━━━━━━━━━━━━━━━━━`)
 				try {
 					const hasil = await tiktokDownload(text)
+					// Fix relative URL
+					let audioUrl = hasil.audio || hasil.url || '';
+					if (audioUrl.startsWith('/')) audioUrl = 'https://tikwm.com' + audioUrl;
+					if (!audioUrl.startsWith('http')) throw new Error('invalid audio url: ' + audioUrl);
+
 					await m.reply({
-						audio: { url: hasil.audio || hasil.url },
+						audio: { url: audioUrl },
 						mimetype: 'audio/mpeg',
 						contextInfo: {
 							externalAdReply: {
