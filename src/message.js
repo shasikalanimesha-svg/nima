@@ -887,6 +887,28 @@ async function Solving(nimesha, store) {
 	
 	nimesha.sendCarouselMsg = async (jid, body = '', footer = '', cards = [], options = {}) => {
 		async function getImageMsg(url) {
+			// Railway self-request 502 fix — local file buffer use කරනවා
+			// .menu call වෙද්දී random image (1-8) pick කරනවා, color change effect
+			try {
+				const _path = require('path');
+				const _fs = require('fs');
+				const MENU_DIR = _path.join(__dirname, '../database/menucards');
+				const urlObj = new URL(url);
+				const cardId = urlObj.pathname.split('/menucard/')[1];
+				if (cardId) {
+					// random 1-8 pick කරනවා
+					const rnd = Math.floor(Math.random() * 8) + 1;
+					const randomPath = _path.join(MENU_DIR, cardId + '_' + rnd + '.jpg');
+					const fallbackPath = _path.join(MENU_DIR, cardId + '.jpg');
+					const imgPath = _fs.existsSync(randomPath) ? randomPath : (_fs.existsSync(fallbackPath) ? fallbackPath : null);
+					if (imgPath) {
+						const buf = _fs.readFileSync(imgPath);
+						const { imageMessage } = await generateWAMessageContent({ image: buf }, { upload: nimesha.waUploadToServer });
+						return imageMessage;
+					}
+				}
+			} catch (_) {}
+			// fallback — URL directly
 			const { imageMessage } = await generateWAMessageContent({ image: { url } }, { upload: nimesha.waUploadToServer });
 			return imageMessage;
 		}
