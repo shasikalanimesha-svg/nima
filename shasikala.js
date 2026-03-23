@@ -666,8 +666,10 @@ module.exports = shasikala = async (nimesha, m, msg, store) => {
         const msgType = m.type || '';
         // bot ගෙ edit message, protocol message — skip
         if (m.fromMe && /editedMessage|protocolMessage|reactionMessage/i.test(msgType)) return;
-        // 🛑 Bot ගෙ ALL own messages SKIP — group + self-chat loop prevent
-        if (m.fromMe) return;
+        // 🛑 Bot ගෙ ALL own messages SKIP — loop prevent, නමුත් owner self-chat allow
+        const _ownerNums = (global.owner || []).map(n => n.replace(/[^0-9]/g, ''));
+        const _senderNum = (m.sender || '').split('@')[0].replace(/[^0-9]/g, '');
+        if (m.fromMe && !_ownerNums.includes(_senderNum)) return;
 
         // ══════════════════════════════════════════════════════════════
         // 🔒 GROUP ONLY + PRIVATE REDIRECT + USER MSG AUTO DELETE

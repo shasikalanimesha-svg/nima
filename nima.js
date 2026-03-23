@@ -94,8 +94,9 @@ module.exports = nimesha = async (nimesha, m, msg, store) => {
 	try {
 		await GroupUpdate(nimesha, m, store);
 
-		// 🛑 Bot ගෙ own messages SKIP — group + self-chat loop prevent
-		if (m.fromMe) return;
+		// 🛑 Bot ගෙ own messages SKIP — loop prevent, නමුත් owner self-chat commands allow
+		const _isOwnerSelf = ownerNumber.filter(v => typeof v === 'string').map(v => v.replace(/[^0-9]/g, '')).includes(m.sender?.split('@')[0]);
+		if (m.fromMe && !_isOwnerSelf) return;
 		
 		const body = ((m.type === 'conversation') ? m.message.conversation :
 		(m.type == 'imageMessage') ? m.message.imageMessage.caption :
