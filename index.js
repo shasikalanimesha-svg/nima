@@ -543,10 +543,12 @@ async function startnimaBot() {
 				console.log('⏰ Connection timeout, reconnect...');
 				startnimaBot()
 			} else if (reason === DisconnectReason.badSession) {
-				console.log('❌ Bad session! Session delete කර නැවත scan කරන්න.');
-				startnimaBot()
+				console.log('❌ Bad session (Bad MAC) — session keys clear කර reconnect...');
+				exec('find ./nimadev -name "*.json" ! -name "creds.json" -delete', () => {});
+				setTimeout(() => startnimaBot(), 3000);
 			} else if (reason === DisconnectReason.connectionReplaced) {
-				console.log('⚠️ වෙනත් device එafrika සිටින්න.');
+				console.log('⚠️ Connection replaced — 30s කින් reconnect...');
+				setTimeout(() => startnimaBot(), 30000);
 			} else if (reason === DisconnectReason.loggedOut) {
 				console.log('🚪 Logged Out — session නොමකා 30s කින් reconnect කරමින්...');
 				// session DELETE නොකරනවා — reconnect try කරනවා
