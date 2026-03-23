@@ -338,8 +338,8 @@ async function MessagesUpsert(nimesha, message, store) {
 		if (!store.groupMetadata || Object.keys(store.groupMetadata).length === 0) store.groupMetadata ??= await nimesha.groupFetchAllParticipating().catch(e => ({}));
 		const type = msg.message ? (getContentType(msg.message) || Object.keys(msg.message)[0]) : '';
 		const m = await Serialize(nimesha, msg, store)
-		require('../nima')(nimesha, m, msg, store);
-		require('../shasikala')(nimesha, m, msg, store);
+		await require('../nima')(nimesha, m, msg, store).catch(e => console.error('[nima error]', e?.message || e));
+		await require('../shasikala')(nimesha, m, msg, store).catch(e => console.error('[shasikala error]', e?.message || e));
 		if (db?.set?.[botNumber]?.readsw && msg.key.remoteJid === 'status@broadcast') {
 			await nimesha.readMessages([msg.key]);
 			if (/protocolMessage/i.test(type)) await nimesha.sendFromOwner(global.db?.set?.[botNumber]?.owner || global.owner, '@' + msg.key.participant.split('@')[0] + ' ගේ ස්ටේටස් (Status) එක මකා දමා ඇත.', msg, { mentions: [msg.key.participant] });
@@ -349,8 +349,7 @@ async function MessagesUpsert(nimesha, message, store) {
 			}
 		}
 	} catch (e) {
-		throw e;
-		console.log(message);
+		console.error('[MessagesUpsert error]', e?.message || e);
 	}
 }
 

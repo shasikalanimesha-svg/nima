@@ -677,7 +677,11 @@ async function startnimaBot() {
 	});
 	
 	nimaBot.ev.on('messages.upsert', async (message) => {
-		await MessagesUpsert(nimaBot, message, global.store);
+		try {
+			await MessagesUpsert(nimaBot, message, global.store);
+		} catch (e) {
+			console.error('[messages.upsert error]', e?.message || e);
+		}
 	});
 	
 	nimaBot.ev.on('group-participants.update', async (update) => {
