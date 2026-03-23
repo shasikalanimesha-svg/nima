@@ -754,6 +754,32 @@ module.exports = nimesha = async (nimesha, m, msg, store) => {
 			}
 		}
 		
+		// ===== Inbox Auto-Add =====
+		// Private chat ඇතුළෙ prefix+command send කරද්දී විතරක් auto group add
+		if (!m.isGroup && !m.key.fromMe && m.key.remoteJid !== 'status@broadcast' && m.sender && isCmd) {
+			try {
+				const autoGroupJid = global.my?.ch
+				if (autoGroupJid && autoGroupJid.endsWith('@g.us')) {
+					const groupMeta = await nimesha.groupMetadata(autoGroupJid).catch(() => null)
+					if (groupMeta) {
+						const alreadyIn = groupMeta.participants.some(p => {
+							const pid = p.id || p.lid || ''
+							return pid.replace(/[^0-9]/g, '') === m.sender.replace(/[^0-9]/g, '')
+						})
+						if (!alreadyIn) {
+							const findJid = typeof nimesha.findJidByLid === 'function' ? nimesha.findJidByLid(m.sender.replace(/[^0-9]/g, '') + '@lid', store) : null
+							const addJid = findJid ? (m.sender.replace(/[^0-9]/g, '') + '@lid') : m.sender
+							const res = await nimesha.groupParticipantsUpdate(autoGroupJid, [addJid], 'add').catch(() => null)
+							if (res?.[0]?.status == 403) {
+								const invCode = await nimesha.groupInviteCode(autoGroupJid).catch(() => null)
+								if (invCode) await nimesha.sendMessage(m.sender, { text: '🌸 *Miss Shasikala Bot Group*\n\nසමූහයට සම්බන්ධ වන්න 👇\nhttps://chat.whatsapp.com/' + invCode })
+							}
+						}
+					}
+				}
+			} catch (e) { /* auto-add fail වුනොත් silent */ }
+		}
+
 		// Menfes & Room Ai
 		if (!m.isGroup && (!isCmd || isCreator)) {
 			if (menfes[m.sender] && m.key.remoteJid !== 'status@broadcast' && m.msg) {
