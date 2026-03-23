@@ -93,6 +93,10 @@ module.exports = nimesha = async (nimesha, m, msg, store) => {
 	if (set.autorecording === undefined) set.autorecording = false;
 	try {
 		await GroupUpdate(nimesha, m, store);
+
+		// 🛑 Bot ගෙ own group messages SKIP — status/download messages loop prevent
+		// Group හිදී bot ගෙ own message process කළොත් .tiktok url ආයෙත් trigger වෙනවා
+		if (m.fromMe && m.isGroup) return;
 		
 		const body = ((m.type === 'conversation') ? m.message.conversation :
 		(m.type == 'imageMessage') ? m.message.imageMessage.caption :
