@@ -14,7 +14,7 @@ global.listv = ['•','●','■','✿','▲','➩','➢','➣','➤','✦','✧
 global.tempatDB = 'database.json'
 global.tempatStore = 'baileys_store.json'
 global.pairing_code = true
-global.number_bot = '94726800969'
+global.number_bot = ''
 
 global.fake = {
 	anonim: 'https://ibb.co/rKyYj3Rr',
