@@ -1,12 +1,11 @@
 {
   "hit": {
-    "totalcmd": 4,
-    "todaycmd": 4,
-    "bot": 3,
-    "session": 1
+    "totalcmd": 1,
+    "todaycmd": 1,
+    "bot": 1
   },
   "set": {
-    "94726800969@s.whatsapp.net": {
+    "94784134577@s.whatsapp.net": {
       "lang": "si",
       "limit": 0,
       "money": 0,
@@ -41,6 +40,18 @@
   "cmd": {},
   "store": {},
   "users": {
+    "94784134577@s.whatsapp.net": {
+      "vip": false,
+      "ban": false,
+      "afkTime": -1,
+      "afkReason": "",
+      "register": false,
+      "limit": 20,
+      "money": 10000,
+      "lastclaim": 1774260925907,
+      "lastbegal": 1774260925907,
+      "lastrampok": 1774260925907
+    },
     "94726800969@s.whatsapp.net": {
       "vip": false,
       "ban": false,
@@ -49,69 +60,9 @@
       "register": false,
       "limit": 20,
       "money": 10000,
-      "lastclaim": 1773839681841,
-      "lastbegal": 1773839681841,
-      "lastrampok": 1773839681841
-    },
-    "177214746325165@lid": {
-      "vip": false,
-      "ban": false,
-      "afkTime": -1,
-      "afkReason": "",
-      "register": false,
-      "limit": 20,
-      "money": 10000,
-      "lastclaim": 1773850538297,
-      "lastbegal": 1773850538297,
-      "lastrampok": 1773850538297
-    },
-    "120363401720377971@newsletter": {
-      "vip": false,
-      "ban": false,
-      "afkTime": -1,
-      "afkReason": "",
-      "register": false,
-      "limit": 20,
-      "money": 10000,
-      "lastclaim": 1773895643843,
-      "lastbegal": 1773895643843,
-      "lastrampok": 1773895643843
-    },
-    "120363336009581155@newsletter": {
-      "vip": false,
-      "ban": false,
-      "afkTime": -1,
-      "afkReason": "",
-      "register": false,
-      "limit": 20,
-      "money": 10000,
-      "lastclaim": 1773924748603,
-      "lastbegal": 1773924748603,
-      "lastrampok": 1773924748603
-    },
-    "94789525799@s.whatsapp.net": {
-      "vip": false,
-      "ban": false,
-      "afkTime": -1,
-      "afkReason": "",
-      "register": false,
-      "limit": 20,
-      "money": 10000,
-      "lastclaim": 1773924751790,
-      "lastbegal": 1773924751790,
-      "lastrampok": 1773924751790
-    },
-    "160503330541616@lid": {
-      "vip": false,
-      "ban": false,
-      "afkTime": -1,
-      "afkReason": "",
-      "register": false,
-      "limit": 20,
-      "money": 10000,
-      "lastclaim": 1773937151958,
-      "lastbegal": 1773937151958,
-      "lastrampok": 1773937151958
+      "lastclaim": 1774260932839,
+      "lastbegal": 1774260932839,
+      "lastrampok": 1774260932839
     }
   },
   "game": {
@@ -142,7 +93,7 @@
     "private_ai_disabled": true
   },
   "groups": {
-    "120363422905708229@g.us": {
+    "120363406700185703@g.us": {
       "url": "",
       "text": {},
       "warn": {},
