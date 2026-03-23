@@ -1851,29 +1851,42 @@ _ස්තූතියි!_ 🌸`).then(() => {
 					const klss = numbersOnly.replace(/[^0-9]/g, '') + (findJid ? '@lid' :  '@s.whatsapp.net')
 					const nmrnya = nimesha.findJidByLid(klss, store, true)
 					try {
-						await nimesha.groupParticipantsUpdate(m.chat, [nmrnya], 'add').then(async (res) => {
-							for (let i of res) {
-								let invv = await nimesha.groupInviteCode(m.chat)
-								const statusMessages = {
-									200: `සාර්ථකව @${nmrnya.split('@')[0]} සමූහයට එකතු කෙරිණ!`,
-									401: 'ඔහු/ඇය Bot block කර ඇත!',
-									409: 'ඔහු/ඇය දැනටමත් සම්බන්ධ වී ඇත!',
-									500: 'Grup Penuh!'
-								};
-								if (statusMessages[i.status]) {
-									return m.reply(statusMessages[i.status]);
-								} else if (i.status == 408) {
-									await m.reply(`@${nmrnya.split('@')[0]} මෑතකදී මෙම සමූහයෙන් ඉවත් වී ඇත!\n\nඉලක්කය Private නිසා\n\nආරාධනය යවනු ලබේ\n-> wa.me/${nmrnya.replace(/\D/g, '')}\nපෞද්ගලික ලෙස`)
-									await m.reply(`${'https://chat.whatsapp.com/' + invv}\n------------------------------------------------------\n\nAdmin: @${m.sender.split('@')[0]}\nඔබව මෙම සමූහයට ආරාධනා කරයි\nකැමති නම් සම්බන්ධ වන්න🙇`, { detectLink: true, chat: nmrnya, quoted: fkontak }).catch((err) => m.reply('❌ ආරාධනය යැවීම අසාර්ථකයි!'))
-								} else if (i.status == 403) {
-									let a = i.content.content[0].attrs
-									await nimesha.sendGroupInviteV4(m.chat, nmrnya, a.code, a.expiration, m.metadata.subject, `Admin: @${m.sender.split('@')[0]}\nඔබව මෙම සමූහයට ආරාධනා කරයි\nකැමති නම් සම්බන්ධ වන්න🙇`, null, { mentions: [m.sender] })
-									await m.reply(`@${nmrnya.split('@')[0]} එකතු කළ නොහැකිය\n\nඉලක්කය Private නිසා\n\nආරාධනය යවනු ලබේ\n-> wa.me/${nmrnya.replace(/\D/g, '')}\nපෞද්ගලික ලෙස`)
-								} else m.reply('User එකතු කිරීම අසාර්ථකයි\nStatus: ' + i.status)
+						const res = await nimesha.groupParticipantsUpdate(m.chat, [nmrnya], 'add')
+						for (let i of (res || [])) {
+							const statusMessages = {
+								200: `සාර්ථකව @${nmrnya.split('@')[0]} සමූහයට එකතු කෙරිණ!`,
+								401: 'ඔහු/ඇය Bot block කර ඇත!',
+								409: 'ඔහු/ඇය දැනටමත් සම්බන්ධ වී ඇත!',
+								500: 'සමූහය පිරී ඇත!'
 							}
-						})
+							if (statusMessages[i.status]) {
+								await m.reply(statusMessages[i.status])
+							} else if (i.status == 408) {
+								const invv = await nimesha.groupInviteCode(m.chat).catch(() => null)
+								await m.reply(`@${nmrnya.split('@')[0]} මෑතකදී සමූහයෙන් ඉවත් වී ඇත!\n\nPrivate account නිසා ආරාධනය යවනු ලැබේ\n-> wa.me/${nmrnya.replace(/\D/g, '')}`)
+								if (invv) await nimesha.sendMessage(nmrnya, { text: `https://chat.whatsapp.com/${invv}\n\nAdmin: @${m.sender.split('@')[0]}\nඔබව සමූහයට ආරාධනා කරයි 🙇` }).catch(() => m.reply('❌ ආරාධනය යැවීම අසාර්ථකයි!'))
+							} else if (i.status == 403) {
+								try {
+									const attrs = i?.content?.content?.[0]?.attrs
+									if (attrs?.code && attrs?.expiration) {
+										await nimesha.sendGroupInviteV4(m.chat, nmrnya, attrs.code, attrs.expiration, m.metadata.subject, `Admin: @${m.sender.split('@')[0]}\nඔබව සමූහයට ආරාධනා කරයි 🙇`, null, { mentions: [m.sender] })
+									} else {
+										const invv = await nimesha.groupInviteCode(m.chat).catch(() => null)
+										if (invv) await nimesha.sendMessage(nmrnya, { text: `https://chat.whatsapp.com/${invv}\n\nAdmin: @${m.sender.split('@')[0]}\nඔබව සමූහයට ආරාධනා කරයි 🙇` }).catch(() => {})
+									}
+									await m.reply(`@${nmrnya.split('@')[0]} Private account නිසා directly add කළ නොහැකිය\nආරාධනය යවන ලදී -> wa.me/${nmrnya.replace(/\D/g, '')}`, { mentions: [nmrnya] })
+								} catch (invErr) {
+									const invv = await nimesha.groupInviteCode(m.chat).catch(() => null)
+									if (invv) await nimesha.sendMessage(nmrnya, { text: `https://chat.whatsapp.com/${invv}\n\nAdmin: @${m.sender.split('@')[0]}\nඔබව සමූහයට ආරාධනා කරයි 🙇` }).catch(() => {})
+									await m.reply(`@${nmrnya.split('@')[0]} Private account නිසා directly add කළ නොහැකිය\nආරාධනය යවන ලදී`, { mentions: [nmrnya] })
+								}
+							} else {
+								await m.reply('User එකතු කිරීම අසාර්ථකයි\nStatus: ' + i.status)
+							}
+						}
 					} catch (e) {
-						m.reply('දෝෂයක් ඇති! User එකතු කිරීම අසාර්ථකයි')
+						console.error('[.add error]', e)
+						await m.reply('දෝෂයක් ඇති! User එකතු කිරීම අසාර්ථකයි\n' + (e?.message || ''))
 					}
 				} else m.reply(`⚠️ *Add Command*\n\nකෙනෙකුව සමූහයට එකතු කිරීමට:\n📌 අංකය සමඟ: ${prefix + command} *94xxxxxxxxx*\n\nඋදාහරණ: ${prefix + command} 94712345678`)
 			}
