@@ -41,7 +41,7 @@
       "limit": 0,
       "money": 0,
       "status": 0,
-      "join": false,
+      "join": true,
       "public": true,
       "anticall": false,
       "original": true,
