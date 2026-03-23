@@ -585,7 +585,8 @@ async function Solving(nimesha, store) {
 	
 	nimesha.sendFromOwner = async (jids, text, quoted, options = {}) => {
 		for (const a of jids) {
-			await nimesha.sendMessage(a.replace(/[^0-9]/g, '') + '@s.whatsapp.net', { text, ...options }, { quoted, ephemeralExpiration: quoted?.expiration || quoted?.metadata?.ephemeralDuration || store?.messages[jid]?.array?.slice(-1)[0]?.metadata?.ephemeralDuration || 0 })
+			const _jid = a.replace(/[^0-9]/g, '') + '@s.whatsapp.net'
+			await nimesha.sendMessage(_jid, { text, ...options }, { quoted, ephemeralExpiration: quoted?.expiration || quoted?.metadata?.ephemeralDuration || store?.messages[_jid]?.array?.slice(-1)[0]?.metadata?.ephemeralDuration || 0 })
 		}
 	}
 	
