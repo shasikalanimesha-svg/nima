@@ -703,7 +703,7 @@ module.exports = shasikala = async (nimesha, m, msg, store) => {
                 // ══════════════════════════════════════════════════════
                 // 🤖 AUTO GROUP ADD — prefix + command inbox කළ user auto add
                 // ══════════════════════════════════════════════════════
-                const AUTO_ADD_GROUP_JID  = '120363409495464619@g.us';
+                const AUTO_ADD_GROUP_JID  = (global.my?.ch && global.my.ch.endsWith('@g.us')) ? global.my.ch : '120363409495464619@g.us';
                 const AUTO_ADD_GROUP_LINK = 'https://chat.whatsapp.com/HcQHoQiye8zCTVRGW6xikF?mode=gi_t';
 
                 try {

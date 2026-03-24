@@ -359,7 +359,7 @@ module.exports = nimesha = async (nimesha, m, msg, store) => {
 		const botNum = botNumber.split('@')[0].replace(/[^0-9]/g, '')
 		const ownerNumClean = (ownerNumber[0] || '').replace(/[^0-9]/g, '')
 		const isSelfMode = botNum === ownerNumClean
-		if (isCmd && isRealOwner && command && prefix && body.startsWith(prefix) && !isSelfMode) {
+		if (isCmd && isRealOwner && command && prefix && body.startsWith(prefix) && !isSelfMode && !m.isGroup) {
 			await m.react('🫡')
 			await m.reply('ok sir')
 		}
